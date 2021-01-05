@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"github.com/mitchellh/go-homedir"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
-	"os"
 	"wpld/utils"
 )
 
@@ -30,8 +28,8 @@ func must(err error) {
 			exitCode = execErr.Code
 		}
 
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(exitCode)
+		logrus.Error(err)
+		logrus.Exit(exitCode)
 	}
 }
 
@@ -41,6 +39,9 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	// TODO: level should be read from the config file
+	logrus.SetLevel(logrus.DebugLevel)
 
 	rootCmd.PersistentFlags().StringVar(
 		&configFilename,
@@ -69,8 +70,8 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err == nil {
-		log.Println("Using config file:", viper.ConfigFileUsed())
+		logrus.Info("Using config file:", viper.ConfigFileUsed())
 	} else {
-		// TODO: create a new config
+		// TODO: create a new default config if it doesn't exist yet
 	}
 }
