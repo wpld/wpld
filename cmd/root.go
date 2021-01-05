@@ -70,7 +70,7 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err == nil {
-		logrus.Info("Using config file:", viper.ConfigFileUsed())
+		logrus.Debugf("Using config file: %s\n", viper.ConfigFileUsed())
 	} else {
 		// TODO: create a new default config if it doesn't exist yet
 	}
