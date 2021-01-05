@@ -5,7 +5,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// upCmd represents the up command
 var upCmd = &cobra.Command{
 	SilenceUsage: true,
 	Use:   "up",

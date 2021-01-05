@@ -6,6 +6,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 	"wpld/utils"
 )
@@ -44,8 +45,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(
 		&configFilename,
 		"config",
-		"$HOME/.wpld.yaml",
-		"Configuration file.",
+		"",
+		"Path to the configuration file. By default it uses \"$HOME/.wpld.yaml\".",
 	)
 }
 
@@ -68,7 +69,7 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Println("Using config file:", viper.ConfigFileUsed())
 	} else {
 		// TODO: create a new config
 	}
