@@ -12,4 +12,4 @@ clean:
 	$(GO) clean .
 build: clean
 	@echo ">  Building binary..."
-	$(GO) build -o $(D_BIN)/wpld $(PROJECTROOT)/wpld.go
+	$(GO) build -o $(D_BIN)/wpld $(PROJECTROOT)/main.go
