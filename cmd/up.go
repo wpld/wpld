@@ -30,10 +30,22 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
+		pull := false
+		if pullFlag, err := cmd.Flags().GetBool("pull"); err == nil {
+			pull = pullFlag
+		}
+
+		if err = global.RunMySQL(ctx, cli, pull); err != nil {
+			return err
+		}
+
 		return nil
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(upCmd)
+
+	f := upCmd.Flags()
+	f.Bool("pull", false, "Pull images before starting containers.")
 }
