@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
@@ -29,6 +28,10 @@ func (args Container) Inspect(ctx context.Context, cli *client.Client) (types.Co
 func (args Container) Start(ctx context.Context, cli *client.Client) error {
 	var containerID string
 	if c, cerr := args.Inspect(ctx, cli); cerr != nil {
+		if !client.IsErrNotFound(cerr) {
+			return cerr
+		}
+
 		logrus.Debugf("Container {%s} doesn't exist, creating...", args.Name)
 		if resp, err := cli.ContainerCreate(ctx, args.Create, args.Host, args.Network, args.Platform, args.Name); err != nil {
 			return err
@@ -63,9 +66,12 @@ func (args Container) Start(ctx context.Context, cli *client.Client) error {
 func (args Container) Stop(ctx context.Context, cli *client.Client) error {
 	c, cerr := args.Inspect(ctx, cli)
 	if cerr != nil {
-		fmt.Printf("%v\n", client.IsErrNotFound(cerr));
-		logrus.Debugf("Container {%s} doesn't exist...", args.Name)
-		return nil
+		if client.IsErrNotFound(cerr) {
+			logrus.Debugf("Container {%s} doesn't exist...", args.Name)
+			return nil
+		}
+
+		return cerr
 	}
 
 	if c.State.Running {
@@ -83,9 +89,12 @@ func (args Container) Stop(ctx context.Context, cli *client.Client) error {
 func (args Container) Remove(ctx context.Context, cli *client.Client) error {
 	c, cerr := args.Inspect(ctx, cli)
 	if cerr != nil {
-		fmt.Printf("%v\n", client.IsErrNotFound(cerr));
-		logrus.Debugf("Container {%s} doesn't exist...", args.Name)
-		return nil
+		if client.IsErrNotFound(cerr) {
+			logrus.Debugf("Container {%s} doesn't exist...", args.Name)
+			return nil
+		}
+
+		return cerr
 	}
 
 	if c.State.Running {

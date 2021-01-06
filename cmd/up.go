@@ -35,7 +35,13 @@ to quickly create a Cobra application.`,
 			pull = pullFlag
 		}
 
+		// TODO: start containers using goroutines
 		if err = global.RunMySQL(ctx, cli, pull); err != nil {
+			return err
+		}
+
+		// TODO: wait until we can connect to the MySQL server before starting phpMyAdmin?
+		if err = global.RunMyAdmin(ctx, cli, pull); err != nil {
 			return err
 		}
 

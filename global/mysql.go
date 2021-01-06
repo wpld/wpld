@@ -5,8 +5,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"os"
-	"strconv"
 	"wpld/utils"
 )
 
@@ -29,8 +27,9 @@ func RunMySQL(ctx context.Context, cli *client.Client, pull bool) error {
 	mysql := utils.Container{
 		Name: MYSQL_CONTAINER_NAME,
 		Create: &container.Config{
+			Hostname: "mysql",
 			Image: img.Name,
-			User: strconv.Itoa(os.Getuid()),
+			//User: strconv.Itoa(os.Getuid()),
 			Env: []string{
 				"MYSQL_ROOT_PASSWORD=password",
 				"MYSQL_USER=wordpress",
