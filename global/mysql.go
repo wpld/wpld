@@ -4,6 +4,9 @@ import (
 	"context"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
+	"os"
+	"strconv"
 	"wpld/utils"
 )
 
@@ -27,6 +30,29 @@ func RunMySQL(ctx context.Context, cli *client.Client, pull bool) error {
 		Name: MYSQL_CONTAINER_NAME,
 		Create: &container.Config{
 			Image: img.Name,
+			User: strconv.Itoa(os.Getuid()),
+			Env: []string{
+				"MYSQL_ROOT_PASSWORD=password",
+				"MYSQL_USER=wordpress",
+				"MYSQL_PASSWORD=password",
+			},
+		},
+		Host: &container.HostConfig{
+			NetworkMode: NETWORK_NAME,
+			IpcMode: "shareable",
+			PortBindings: nat.PortMap{
+				"3306/tcp": []nat.PortBinding{
+					{
+						HostIP: "127.0.0.1",
+						HostPort: "3306",
+					},
+				},
+			},
+			Resources: container.Resources{
+				// TODO: MySQL memory settings should be configurable in the global configuration file
+				Memory: 1 << 29, // .5gb
+				MemoryReservation: 1 << 29, // .5gb
+			},
 		},
 	}
 
