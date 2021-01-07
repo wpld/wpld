@@ -36,6 +36,14 @@ to quickly create a Cobra application.`,
 		}
 
 		// TODO: start containers using goroutines
+		if err = global.RunNginxProxy(ctx, cli, pull); err != nil {
+			return err
+		}
+
+		if err = global.RunDnsMasq(ctx, cli, pull); err != nil {
+			return err
+		}
+
 		if err = global.RunMySQL(ctx, cli, pull); err != nil {
 			return err
 		}

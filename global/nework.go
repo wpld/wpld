@@ -19,7 +19,7 @@ func VerifyNetwork(ctx context.Context, cli *client.Client) (string, error) {
 		createArgs := types.NetworkCreate{
 			CheckDuplicate: false,
 			Internal: false,
-			Attachable: false,
+			Attachable: true,
 		}
 
 		logrus.Debugf("Creating a new {%s} network...", NETWORK_NAME)

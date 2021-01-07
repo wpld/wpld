@@ -27,11 +27,10 @@ func RunMyAdmin(ctx context.Context, cli *client.Client, pull bool) error {
 	myadmin := utils.Container{
 		Name: MYADMIN_CONTAINER_NAME,
 		Create: &container.Config{
-			Hostname: "phpmyadmin",
 			Image: img.Name,
 			Env: []string{
 				"PMA_HOST=" + MYSQL_CONTAINER_NAME,
-				"UPLOAD_LIMIT=512MiB",
+				"UPLOAD_LIMIT=1024MiB",
 			},
 		},
 		Host: &container.HostConfig{

@@ -32,11 +32,19 @@ to quickly create a Cobra application.`,
 		}
 
 		// TODO: stop containers using goroutines
+		if err = global.StopMyAdmin(ctx, cli, rm); err != nil {
+			return err
+		}
+
 		if err = global.StopMySQL(ctx, cli, rm); err != nil {
 			return err
 		}
 
-		if err = global.StopMyAdmin(ctx, cli, rm); err != nil {
+		if err = global.StopDnsMasq(ctx, cli, rm); err != nil {
+			return err
+		}
+
+		if err = global.StopNginxProxy(ctx, cli, rm); err != nil {
 			return err
 		}
 
