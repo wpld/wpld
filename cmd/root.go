@@ -16,6 +16,9 @@ var (
 		Use: "wpld",
 		Short: "short desc",
 		Long: "long desc",
+		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+			logrus.Debugf("Running {%s} command...", cmd.Use)
+		},
 	}
 )
 
