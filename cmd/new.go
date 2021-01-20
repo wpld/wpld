@@ -7,10 +7,9 @@ import (
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 	"strings"
 	"wpld/global"
-	"wpld/utils"
+	"wpld/models"
 )
 
 var newQuestions = []*survey.Question{
@@ -45,9 +44,9 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
-		compose := utils.Compose{
+		compose := models.Compose{
 			Version: "2.4",
-			Services: map[string]utils.Service{
+			Services: map[string]models.Service{
 				"cache": {
 					Image: "memcached:latest",
 					Networks: []string{
@@ -93,25 +92,20 @@ to quickly create a Cobra application.`,
 					},
 				},
 			},
-			Networks: map[string]interface{}{
-				global.NETWORK_NAME: map[string]interface{}{
-					"external": map[string]string{
+			Networks: map[string]models.Network{
+				global.NETWORK_NAME: {
+					External: map[string]string{
 						"name": global.NETWORK_NAME,
 					},
 				},
 			},
 		}
 
-		dockerCompose, err := yaml.Marshal(compose)
-		if err != nil {
-			return err
-		}
-
 		fs := afero.NewOsFs()
-		if err = afero.WriteFile(fs, "docker-compose.yaml", dockerCompose, 0644); err != nil {
+
+		if err := compose.Save(fs); err != nil {
 			return err
 		}
-
 
 		return nil
 	},

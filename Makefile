@@ -5,11 +5,14 @@ D_BIN        = $(PROJECTROOT)/bin
 
 MAKEFLAGS   += --silent
 
-.PHONY: clean build
+.PHONY: clean build install
 
 build: clean
-	@echo ">  Building binary..."
+	@echo ">  Building the binary..."
 	$(GO) build -o $(D_BIN)/wpld $(PROJECTROOT)/main.go
+install: clean
+	@echo ">  Installing the binary..."
+	$(GO) install
 clean:
-	@echo ">  Cleaning build cache..."
+	@echo ">  Cleaning the build cache..."
 	$(GO) clean .
