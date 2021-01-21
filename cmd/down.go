@@ -8,7 +8,8 @@ import (
 
 var downCmd = &cobra.Command{
 	SilenceUsage: true,
-	Use:   "down",
+	Args: cobra.NoArgs,
+	Use: "down",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:

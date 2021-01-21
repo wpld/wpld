@@ -3,6 +3,7 @@ package utils
 const (
 	UKNOWN_ERROR = 1
 	HOMEDIR_DETECTION_ERROR = 2
+	CONFIG_ERROR = 3
 )
 
 type ExecutionError struct {

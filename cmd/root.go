@@ -13,6 +13,7 @@ var (
 	configFilename string
 	rootCmd = &cobra.Command{
 		SilenceErrors: true,
+		Args: cobra.NoArgs,
 		Use: "wpld",
 		Short: "short desc",
 		Long: "long desc",
@@ -41,10 +42,10 @@ func Execute() {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
-
-	// TODO: level should be read from the config file
-	logrus.SetLevel(logrus.DebugLevel)
+	cobra.OnInitialize(
+		initConfig,
+		initLogger,
+	)
 
 	rootCmd.PersistentFlags().StringVar(
 		&configFilename,
@@ -68,13 +69,29 @@ func initConfig() {
 		} else {
 			viper.AddConfigPath(home)
 			viper.SetConfigName(".wpld")
+			viper.SetConfigType("yaml")
 		}
 	}
 
 	viper.AutomaticEnv()
-	if err := viper.ReadInConfig(); err == nil {
-		logrus.Debugf("Using config file: %s\n", viper.ConfigFileUsed())
+
+	viper.SetDefault("loglevel", "debug")
+
+	_ = viper.SafeWriteConfig()
+	if err := viper.ReadInConfig(); err != nil {
+		must(utils.ExecutionError{
+			Code: utils.CONFIG_ERROR,
+			FriendlyMessage: "Can't read the config file.",
+			OriginalError: err,
+		})
+	}
+}
+
+func initLogger() {
+	level, err := logrus.ParseLevel(viper.GetString("loglevel"))
+	if err != nil {
+		logrus.SetLevel(logrus.WarnLevel)
 	} else {
-		// TODO: create a new default config if it doesn't exist yet
+		logrus.SetLevel(level)
 	}
 }
