@@ -8,7 +8,7 @@ import (
 var configSetCmd = &cobra.Command{
 	SilenceUsage: true,
 	Args: cobra.ExactArgs(2),
-	Use:   "set [key] [value]",
+	Use: "set [key] [value]",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
