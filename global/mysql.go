@@ -5,6 +5,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/spf13/viper"
+	"wpld/config"
 	"wpld/utils"
 )
 
@@ -24,6 +26,26 @@ func RunMySQL(ctx context.Context, cli *client.Client, pull bool) error {
 		}
 	}
 
+	resources := container.Resources{}
+	port := nat.PortBinding{
+		HostIP: "127.0.0.1",
+		HostPort: "3306",
+	}
+
+	memory := viper.GetInt64(config.MYSQL_MEMORY)
+	if memory > 0 {
+		resources.Memory = memory
+	}
+
+	reservation := viper.GetInt64(config.MYSQL_RESERVATION)
+	if reservation > 0 {
+		resources.MemoryReservation = reservation
+	}
+
+	if viper.IsSet(config.MYSQL_PORT) {
+		port.HostPort = viper.GetString(config.MYSQL_PORT)
+	}
+
 	mysql := utils.Container{
 		Name: MYSQL_CONTAINER_NAME,
 		Create: &container.Config{
@@ -39,18 +61,9 @@ func RunMySQL(ctx context.Context, cli *client.Client, pull bool) error {
 			NetworkMode: NETWORK_NAME,
 			IpcMode: "shareable",
 			PortBindings: nat.PortMap{
-				"3306/tcp": []nat.PortBinding{
-					{
-						HostIP: "127.0.0.1",
-						HostPort: "3306",
-					},
-				},
+				"3306/tcp": []nat.PortBinding{ port },
 			},
-			Resources: container.Resources{
-				// TODO: MySQL memory settings should be configurable in the global configuration file
-				Memory: 1 << 29, // .5gb
-				MemoryReservation: 1 << 29, // .5gb
-			},
+			Resources: resources,
 		},
 	}
 

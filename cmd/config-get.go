@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/sirupsen/logrus"
+	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -17,7 +17,7 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logrus.Info(viper.GetString(args[0]))
+		fmt.Println(viper.GetString(args[0]))
 		return nil
 	},
 }

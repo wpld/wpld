@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"wpld/config"
 	"wpld/utils"
 )
 
@@ -75,7 +76,14 @@ func initConfig() {
 
 	viper.AutomaticEnv()
 
-	viper.SetDefault("loglevel", "debug")
+	viper.SetDefault("log.level", "info")
+
+	viper.SetDefault(config.MYSQL_PORT, 3306)
+	viper.SetDefault(config.MYSQL_MEMORY, 1 << 28) // .25gb
+	viper.SetDefault(config.MYSQL_RESERVATION, 1 << 28) // .25gb
+
+	viper.SetDefault(config.PHPMYADMIN_PORT, 8092)
+	viper.SetDefault(config.PHPMYADMIN_UPLOAD_LIMIT, "1024MiB")
 
 	_ = viper.SafeWriteConfig()
 	if err := viper.ReadInConfig(); err != nil {
@@ -88,7 +96,7 @@ func initConfig() {
 }
 
 func initLogger() {
-	level, err := logrus.ParseLevel(viper.GetString("loglevel"))
+	level, err := logrus.ParseLevel(viper.GetString("log.level"))
 	if err != nil {
 		logrus.SetLevel(logrus.WarnLevel)
 	} else {

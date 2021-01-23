@@ -8,6 +8,8 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/spf13/viper"
+	"wpld/config"
 	"wpld/utils"
 )
 
@@ -56,25 +58,29 @@ func RunMyAdmin(ctx context.Context, cli *client.Client, pull bool) error {
 		}
 	}
 
+	port := nat.PortBinding{
+		HostIP: "127.0.0.1",
+		HostPort: "8092",
+	}
+
+	if viper.IsSet(config.PHPMYADMIN_PORT) {
+		port.HostPort = viper.GetString(config.PHPMYADMIN_PORT)
+	}
+
 	myadmin := utils.Container{
 		Name: MYADMIN_CONTAINER_NAME,
 		Create: &container.Config{
 			Image: img.Name,
 			Env: []string{
 				"PMA_USER_CONFIG_BASE64=" + getBase64EncodedPMAConfig(),
-				"UPLOAD_LIMIT=1024MiB",
+				"UPLOAD_LIMIT=" + viper.GetString(config.PHPMYADMIN_UPLOAD_LIMIT),
 			},
 		},
 		Host: &container.HostConfig{
 			NetworkMode: NETWORK_NAME,
 			IpcMode: "shareable",
 			PortBindings: nat.PortMap{
-				"80/tcp": []nat.PortBinding{
-					{
-						HostIP: "127.0.0.1",
-						HostPort: "8092",
-					},
-				},
+				"80/tcp": []nat.PortBinding{ port },
 			},
 		},
 	}
