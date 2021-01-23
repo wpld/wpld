@@ -1,4 +1,7 @@
- map $http_x_forwarded_proto $fe_https {
+package templates
+
+const NGINX_TEMPLATE = `
+map $http_x_forwarded_proto $fe_https {
     default off;
     https on;
 }
@@ -63,3 +66,4 @@ server {
     # This should match upload_max_filesize in php.ini
     client_max_body_size 150m;
 }
+`

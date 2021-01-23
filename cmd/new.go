@@ -2,17 +2,26 @@ package cmd
 
 import (
 	"errors"
-	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
+	"path/filepath"
+	"regexp"
 	"strings"
-	"wpld/global"
-	"wpld/models"
+	"wpld/templates"
 )
 
 var newQuestions = []*survey.Question{
+	{
+		Name: "Name",
+		Validate: survey.Required,
+		Prompt: &survey.Input{
+			Message: "What is the title of your site?",
+		},
+	},
 	{
 		Name: "Hostname",
 		Validate: survey.Required,
@@ -35,6 +44,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		answers := struct {
+			Name string
 			Hostname string
 		}{}
 
@@ -45,67 +55,57 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
-		compose := models.Compose{
-			Version: "2.4",
-			Services: map[string]models.Service{
-				"cache": {
-					Image: "memcached:latest",
-					Networks: []string{
-						global.NETWORK_NAME,
-					},
-				},
-				"nginx": {
-					Image: "nginx:latest",
-					Expose: []int{
-						80,
-						443,
-					},
-					Volumes: []string{
-						"./wordpress:/var/www/html:cached",
-						"./config/nginx/default.conf.template:/etc/nginx/templates",
-					},
-					Networks: []string{
-						global.NETWORK_NAME,
-					},
-					DependsOn: []string{
-						"phpfpm",
-					},
-					Environment: map[string]string{
-						"CERT_NAME": "",
-						"HTTPS_METHOD": "noredirect",
-						"VIRTUAL_HOST": fmt.Sprintf("%[1]s,*.%[1]s", answers.Hostname),
-					},
-				},
-				"phpfpm": {
-					Image: "wordpress",
-					Networks: []string{
-						global.NETWORK_NAME,
-					},
-					DependsOn: []string{
-						"cache",
-					},
-					Environment: map[string]string{
-						"ENABLE_XDEBUG": "true",
-						"WORDPRESS_DB_HOST": global.MYSQL_CONTAINER_NAME,
-						"WORDPRESS_DB_USER": "wordpress",
-						"WORDPRESS_DB_PASSWORD": "password",
-						"WORDPRESS_DB_NAME": strings.ReplaceAll(answers.Hostname, ".", "-"),
-					},
-				},
-			},
-			Networks: map[string]models.Network{
-				global.NETWORK_NAME: {
-					External: map[string]string{
-						"name": global.NETWORK_NAME,
-					},
-				},
-			},
+		re := regexp.MustCompile(`\W+`)
+		basePath := strings.TrimSuffix(
+			strings.ToLower(
+				string(
+					re.ReplaceAll(
+						[]byte(answers.Name),
+						[]byte("-"),
+					),
+				),
+			),
+			"-",
+		)
+
+		wpldFilepath := "wpld.yaml"
+		nginxTemplateFilepath := filepath.FromSlash("config/nginx/default.conf.template")
+
+		compose := viper.New()
+
+		compose.Set("name", answers.Name)
+		compose.Set("hostname", answers.Hostname)
+
+		compose.Set("services.cache.image", "memcached:latest")
+
+		compose.Set("services.nginx.image", "nginx:latest")
+		compose.Set("services.nginx.volumes", []string{
+			nginxTemplateFilepath + ":/etc/nginx/templates",
+		})
+
+		compose.Set("services.wordpress.image", "wordpress:latest")
+
+		config, err := yaml.Marshal(compose.AllSettings())
+		if err != nil {
+			return err
 		}
 
 		fs := afero.NewOsFs()
+		files := map[string][]byte {
+			wpldFilepath: config,
+			nginxTemplateFilepath: []byte(templates.NGINX_TEMPLATE),
+		}
 
-		if err := compose.Save(fs); err != nil {
-			return err
+		for filename, data := range files {
+			path := filepath.Join(basePath, filename)
+
+			if mkdirErr := fs.MkdirAll(filepath.Dir(path), 0755); mkdirErr != nil {
+				return mkdirErr
+			}
+
+			if writeErr := afero.WriteFile(fs, path, data, 0644); writeErr != nil {
+				return writeErr
+			}
 		}
 
 		return nil
