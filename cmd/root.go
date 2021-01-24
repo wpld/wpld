@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"wpld/config"
@@ -12,12 +13,12 @@ import (
 
 var (
 	configFilename string
-	rootCmd = &cobra.Command{
+	rootCmd        = &cobra.Command{
 		SilenceErrors: true,
-		Args: cobra.NoArgs,
-		Use: "wpld",
-		Short: "short desc",
-		Long: "long desc",
+		Args:          cobra.NoArgs,
+		Use:           "wpld",
+		Short:         "short desc",
+		Long:          "long desc",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			logrus.Debugf("Running {%s} command...", cmd.Use)
 		},
@@ -63,9 +64,9 @@ func initConfig() {
 		home, err := homedir.Dir()
 		if err != nil {
 			must(utils.ExecutionError{
-				Code: utils.HOMEDIR_DETECTION_ERROR,
+				Code:            utils.HOMEDIR_DETECTION_ERROR,
 				FriendlyMessage: "Can't find the current user home directory.",
-				OriginalError: err,
+				OriginalError:   err,
 			})
 		} else {
 			viper.AddConfigPath(home)
@@ -75,12 +76,13 @@ func initConfig() {
 	}
 
 	viper.AutomaticEnv()
+	viper.SetFs(afero.NewOsFs())
 
 	viper.SetDefault("log.level", "info")
 
 	viper.SetDefault(config.MYSQL_PORT, 3306)
-	viper.SetDefault(config.MYSQL_MEMORY, 1 << 28) // .25gb
-	viper.SetDefault(config.MYSQL_RESERVATION, 1 << 28) // .25gb
+	viper.SetDefault(config.MYSQL_MEMORY, 1<<28)      // .25gb
+	viper.SetDefault(config.MYSQL_RESERVATION, 1<<28) // .25gb
 
 	viper.SetDefault(config.PHPMYADMIN_PORT, 8092)
 	viper.SetDefault(config.PHPMYADMIN_UPLOAD_LIMIT, "1024MiB")
@@ -88,9 +90,9 @@ func initConfig() {
 	_ = viper.SafeWriteConfig()
 	if err := viper.ReadInConfig(); err != nil {
 		must(utils.ExecutionError{
-			Code: utils.CONFIG_ERROR,
+			Code:            utils.CONFIG_ERROR,
 			FriendlyMessage: "Can't read the config file.",
-			OriginalError: err,
+			OriginalError:   err,
 		})
 	}
 }
