@@ -9,9 +9,8 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"path/filepath"
-	"regexp"
-	"strings"
 	"wpld/templates"
+	"wpld/utils"
 )
 
 var newQuestions = []*survey.Question{
@@ -55,18 +54,7 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
-		re := regexp.MustCompile(`\W+`)
-		basePath := strings.TrimSuffix(
-			strings.ToLower(
-				string(
-					re.ReplaceAll(
-						[]byte(answers.Name),
-						[]byte("-"),
-					),
-				),
-			),
-			"-",
-		)
+		basePath := utils.Slugify(answers.Name)
 
 		wpldFilepath := "wpld.yaml"
 		nginxTemplateFilepath := filepath.FromSlash("config/nginx/default.conf.template")

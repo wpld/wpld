@@ -24,7 +24,7 @@ func TestParseBytes(t *testing.T) {
 		t.Run(name, func(tst *testing.T) {
 			actual, err := utils.ParseBytes(name)
 			if assert.NoError(tst, err) {
-				assert.Equal(tst, actual, expected, name)
+				assert.Equal(tst, expected, actual, name)
 			}
 		})
 	}
