@@ -3,6 +3,7 @@ package cases
 import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/spf13/viper"
+	"strings"
 	"wpld/global"
 	"wpld/utils"
 )
@@ -14,7 +15,7 @@ func CreateArbitraryContainer(service *viper.Viper) *utils.Container {
 
 	host := &container.HostConfig{
 		NetworkMode: global.NETWORK_NAME,
-		IpcMode: "shareable",
+		IpcMode:     "shareable",
 	}
 
 	volumes := service.GetStringSlice("volumes")
@@ -29,13 +30,13 @@ func CreateArbitraryContainer(service *viper.Viper) *utils.Container {
 	if len(env) > 0 {
 		create.Env = []string{}
 		for key, value := range env {
-			create.Env = append(create.Env, key + "=" + value)
+			create.Env = append(create.Env, strings.ToUpper(key)+"="+value)
 		}
 	}
 
 	return &utils.Container{
-		Name: service.GetString("name"),
+		Name:   service.GetString("name"),
 		Create: create,
-		Host: host,
+		Host:   host,
 	}
 }
