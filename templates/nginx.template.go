@@ -48,7 +48,7 @@ server {
         fastcgi_read_timeout 3600s;
         fastcgi_buffer_size 128k;
         fastcgi_buffers 4 128k;
-        fastcgi_pass phpfpm:9000;
+        fastcgi_pass ${PHPFPM_HOST}:9000;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_param HTTPS $fe_https;

@@ -2,8 +2,13 @@ package cmd
 
 import (
 	"github.com/docker/docker/client"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"os"
+	"wpld/cases"
 	"wpld/global"
+	"wpld/utils"
 )
 
 var downCmd = &cobra.Command{
@@ -18,6 +23,20 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
+		dir, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		config := viper.New()
+		config.SetFs(afero.NewOsFs())
+		config.SetConfigName("wpld")
+		config.SetConfigType("yaml")
+		config.AddConfigPath(dir)
+		if err = config.ReadInConfig(); err != nil {
+			return err
+		}
+
 		ctx := cmd.Context()
 		cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
@@ -27,6 +46,24 @@ to quickly create a Cobra application.`,
 		rm := false
 		if rmFlag, rmErr := cmd.Flags().GetBool("rm"); rmErr == nil {
 			rm = rmFlag
+		}
+
+		prefix := utils.Slugify(config.GetString("name"))
+		services := config.Sub("services")
+		for key, _ := range services.AllSettings() {
+			service := services.Sub(key)
+			service.SetDefault("name", "wpld_" + prefix + "_" + key)
+
+			ctrn := cases.CreateArbitraryContainer(service)
+			if err = ctrn.Stop(ctx, cli); err != nil {
+				return err
+			}
+
+			if rm {
+				if rmErr := ctrn.Remove(ctx, cli); rmErr != nil {
+					return rmErr
+				}
+			}
 		}
 
 		// TODO: stop containers using goroutines

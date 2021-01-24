@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v2"
 	"path/filepath"
+	"wpld/global"
 	"wpld/templates"
 	"wpld/utils"
 )
@@ -54,7 +55,7 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
-		basePath := utils.Slugify(answers.Name)
+		slug := utils.Slugify(answers.Name)
 
 		wpldFilepath := "wpld.yaml"
 		nginxTemplateFilepath := filepath.FromSlash("config/nginx/default.conf.template")
@@ -67,11 +68,21 @@ to quickly create a Cobra application.`,
 		compose.Set("services.cache.image", "memcached:latest")
 
 		compose.Set("services.nginx.image", "nginx:latest")
-		compose.Set("services.nginx.volumes", []string{
-			nginxTemplateFilepath + ":/etc/nginx/templates",
+		compose.Set("services.nginx.volumes", []string{ nginxTemplateFilepath + ":/etc/nginx/templates" })
+		compose.Set("services.nginx.env", map[string]string{
+			"HTTPS_METHOD": "noredirect",
+			"VIRTUAL_HOST": answers.Hostname,
+			"CERT_NAME": slug,
+			"PHPFPM_HOST": "wpld_" + slug + "_wordpress",
 		})
 
-		compose.Set("services.wordpress.image", "wordpress:latest")
+		compose.Set("services.wordpress.image", "wordpress:php7.4-fpm")
+		compose.Set("services.wordpress.env", map[string]string{
+			"WORDPRESS_DB_HOST": global.MYSQL_CONTAINER_NAME,
+			"WORDPRESS_DB_USER": "wordpress",
+			"WORDPRESS_DB_PASSWORD": "password",
+			"WORDPRESS_DB_NAME": slug,
+		})
 
 		config, err := yaml.Marshal(compose.AllSettings())
 		if err != nil {
@@ -85,7 +96,7 @@ to quickly create a Cobra application.`,
 		}
 
 		for filename, data := range files {
-			path := filepath.Join(basePath, filename)
+			path := filepath.Join(slug, filename)
 
 			if mkdirErr := fs.MkdirAll(filepath.Dir(path), 0755); mkdirErr != nil {
 				return mkdirErr

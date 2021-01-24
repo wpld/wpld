@@ -6,7 +6,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"wpld/cases"
 	"wpld/global"
+	"wpld/utils"
 )
 
 var upCmd = &cobra.Command{
@@ -66,6 +68,18 @@ to quickly create a Cobra application.`,
 		// TODO: wait until we can connect to the MySQL server before starting phpMyAdmin?
 		if err = global.RunMyAdmin(ctx, cli, pull); err != nil {
 			return err
+		}
+
+		prefix := utils.Slugify(config.GetString("name"))
+		services := config.Sub("services")
+		for key, _ := range services.AllSettings() {
+			service := services.Sub(key)
+			service.SetDefault("name", "wpld_" + prefix + "_" + key)
+
+			ctrn := cases.CreateArbitraryContainer(service)
+			if err = ctrn.Start(ctx, cli); err != nil {
+				return err
+			}
 		}
 
 		return nil
