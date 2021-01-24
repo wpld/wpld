@@ -80,12 +80,12 @@ func initConfig() {
 
 	viper.SetDefault("log.level", "info")
 
-	viper.SetDefault(config.MYSQL_PORT, 3306)
-	viper.SetDefault(config.MYSQL_MEMORY, 1<<28)      // .25gb
-	viper.SetDefault(config.MYSQL_RESERVATION, 1<<28) // .25gb
+	viper.SetDefault(config.MYSQL_PORT, "3306")
+	viper.SetDefault(config.MYSQL_MEMORY, "256MiB")
+	viper.SetDefault(config.MYSQL_RESERVATION, "256MiB")
 
-	viper.SetDefault(config.PHPMYADMIN_PORT, 8092)
-	viper.SetDefault(config.PHPMYADMIN_UPLOAD_LIMIT, "1024MiB")
+	viper.SetDefault(config.PHPMYADMIN_PORT, "8092")
+	viper.SetDefault(config.PHPMYADMIN_UPLOAD_LIMIT, "1GiB")
 
 	_ = viper.SafeWriteConfig()
 	if err := viper.ReadInConfig(); err != nil {
