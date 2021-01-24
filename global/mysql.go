@@ -32,14 +32,14 @@ func RunMySQL(ctx context.Context, cli *client.Client, pull bool) error {
 		HostPort: "3306",
 	}
 
-	memory := viper.GetInt64(config.MYSQL_MEMORY)
-	if memory > 0 {
-		resources.Memory = memory
+	memory := viper.GetString(config.MYSQL_MEMORY)
+	if mem, err := utils.ParseBytes(memory); err == nil {
+		resources.Memory = mem
 	}
 
-	reservation := viper.GetInt64(config.MYSQL_RESERVATION)
-	if reservation > 0 {
-		resources.MemoryReservation = reservation
+	reservation := viper.GetString(config.MYSQL_RESERVATION)
+	if reserve, err := utils.ParseBytes(reservation); err == nil {
+		resources.MemoryReservation = reserve
 	}
 
 	if viper.IsSet(config.MYSQL_PORT) {

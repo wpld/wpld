@@ -5,7 +5,7 @@ D_BIN        = $(PROJECTROOT)/bin
 
 MAKEFLAGS   += --silent
 
-.PHONY: clean build install
+.PHONY: clean build install test
 
 build: clean
 	@echo ">  Building the binary..."
@@ -16,3 +16,6 @@ install: clean
 clean:
 	@echo ">  Cleaning the build cache..."
 	$(GO) clean .
+test:
+	@echo ">  Testing the project..."
+	$(GO) test ./...
