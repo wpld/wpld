@@ -65,24 +65,33 @@ to quickly create a Cobra application.`,
 		compose.Set("name", answers.Name)
 		compose.Set("hostname", answers.Hostname)
 
-		compose.Set("services.cache.image", "memcached:latest")
-
-		compose.Set("services.nginx.image", "nginx:latest")
-		compose.Set("services.nginx.volumes", []string{ nginxTemplateFilepath + ":/etc/nginx/templates" })
-		compose.Set("services.nginx.env", map[string]string{
+		compose.Set("nginx.image", "nginx:latest")
+		compose.Set("nginx.name", slug + "_nginx")
+		compose.Set("nginx.volumes", []string{
+			nginxTemplateFilepath + ":/etc/nginx/templates/default.conf.template",
+			"wordpress:/var/www/html",
+		})
+		compose.Set("nginx.env", map[string]string{
 			"HTTPS_METHOD": "noredirect",
 			"VIRTUAL_HOST": answers.Hostname,
 			"CERT_NAME": slug,
-			"PHPFPM_HOST": "wpld_" + slug + "_wordpress",
+			"PHPFPM_HOST": slug + "_wordpress",
 		})
 
-		compose.Set("services.wordpress.image", "wordpress:php7.4-fpm")
-		compose.Set("services.wordpress.env", map[string]string{
+		compose.Set("wordpress.image", "wordpress:latest")
+		compose.Set("wordpress.name", slug + "_wordpress")
+		compose.Set("wordpress.volumes", []string{
+			"wordpress:/var/www/html",
+		})
+		compose.Set("wordpress.env", map[string]string{
 			"WORDPRESS_DB_HOST": global.MYSQL_CONTAINER_NAME,
-			"WORDPRESS_DB_USER": "wordpress",
+			"WORDPRESS_DB_USER": "root",
 			"WORDPRESS_DB_PASSWORD": "password",
 			"WORDPRESS_DB_NAME": slug,
 		})
+
+		compose.Set("services.cache.image", "memcached:latest")
+		compose.Set("services.cache.name", slug + "_cache")
 
 		config, err := yaml.Marshal(compose.AllSettings())
 		if err != nil {
@@ -90,6 +99,10 @@ to quickly create a Cobra application.`,
 		}
 
 		fs := afero.NewOsFs()
+		if wpDirErr := fs.MkdirAll(filepath.Join(slug, "wordpress"), 0755); wpDirErr != nil {
+			return wpDirErr
+		}
+
 		files := map[string][]byte {
 			wpldFilepath: config,
 			nginxTemplateFilepath: []byte(templates.NGINX_TEMPLATE),

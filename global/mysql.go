@@ -53,8 +53,6 @@ func RunMySQL(ctx context.Context, cli *client.Client, pull bool) error {
 			//User: strconv.Itoa(os.Getuid()),
 			Env: []string{
 				"MYSQL_ROOT_PASSWORD=password",
-				"MYSQL_USER=wordpress",
-				"MYSQL_PASSWORD=password",
 			},
 		},
 		Host: &container.HostConfig{

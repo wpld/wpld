@@ -1,11 +1,15 @@
 package cmd
 
 import (
+	"database/sql"
 	"github.com/docker/docker/client"
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
+	"time"
 	"wpld/cases"
 	"wpld/global"
 	"wpld/utils"
@@ -65,8 +69,31 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
+		for i := 0; i < 12; i++ {
+			if db, err := sql.Open("mysql", "root:password@/information_schema"); err != nil {
+				logrus.Error(err)
+			} else {
+				if pingErr := db.Ping(); pingErr == nil {
+					db.Close()
+					break
+				}
+			}
+
+			time.Sleep(5 * time.Second)
+		}
+
 		// TODO: wait until we can connect to the MySQL server before starting phpMyAdmin?
 		if err = global.RunMyAdmin(ctx, cli, pull); err != nil {
+			return err
+		}
+
+		wp := cases.CreateArbitraryContainer(config.Sub("wordpress"))
+		if err = wp.Start(ctx, cli); err != nil {
+			return err
+		}
+
+		nginx := cases.CreateArbitraryContainer(config.Sub("nginx"))
+		if err = nginx.Start(ctx, cli); err != nil {
 			return err
 		}
 
@@ -74,7 +101,7 @@ to quickly create a Cobra application.`,
 		services := config.Sub("services")
 		for key, _ := range services.AllSettings() {
 			service := services.Sub(key)
-			service.SetDefault("name", "wpld_" + prefix + "_" + key)
+			service.SetDefault("name", prefix + "_" + key)
 
 			ctrn := cases.CreateArbitraryContainer(service)
 			if err = ctrn.Start(ctx, cli); err != nil {

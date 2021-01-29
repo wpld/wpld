@@ -48,11 +48,38 @@ to quickly create a Cobra application.`,
 			rm = rmFlag
 		}
 
+		nginx := cases.CreateArbitraryContainer(config.Sub("nginx"))
+		if err = nginx.Stop(ctx, cli); err != nil {
+			return err
+		}
+
+		if rm {
+			if rmErr := nginx.Remove(ctx, cli); rmErr != nil {
+				return rmErr
+			}
+		}
+
+		all := false
+		if allFlag, allErr := cmd.Flags().GetBool("all"); allErr == nil {
+			all = allFlag
+		}
+
+		wp := cases.CreateArbitraryContainer(config.Sub("wordpress"))
+		if err = wp.Stop(ctx, cli); err != nil {
+			return err
+		}
+
+		if rm {
+			if rmErr := wp.Remove(ctx, cli); rmErr != nil {
+				return rmErr
+			}
+		}
+
 		prefix := utils.Slugify(config.GetString("name"))
 		services := config.Sub("services")
 		for key, _ := range services.AllSettings() {
 			service := services.Sub(key)
-			service.SetDefault("name", "wpld_" + prefix + "_" + key)
+			service.SetDefault("name", prefix + "_" + key)
 
 			ctrn := cases.CreateArbitraryContainer(service)
 			if err = ctrn.Stop(ctx, cli); err != nil {
@@ -64,6 +91,10 @@ to quickly create a Cobra application.`,
 					return rmErr
 				}
 			}
+		}
+
+		if ! all {
+			return nil
 		}
 
 		// TODO: stop containers using goroutines
@@ -92,4 +123,5 @@ func init() {
 
 	flags := downCmd.Flags()
 	flags.Bool("rm", false, "Remove containers.")
+	flags.Bool("all", false, "Down all containers.")
 }
