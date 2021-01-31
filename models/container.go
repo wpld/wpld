@@ -32,9 +32,7 @@ func (c Container) Create(config *container.Config, host *container.HostConfig) 
 		if !client.IsErrNotFound(err) {
 			return err
 		}
-	}
-
-	if len(inspect.ID) > 0 {
+	} else if len(inspect.ID) > 0 {
 		logrus.Debugf("[%s] Container already exists...", c.name)
 		return nil
 	}

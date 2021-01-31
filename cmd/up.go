@@ -42,7 +42,6 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
-		ctx := cmd.Context()
 		cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
 			return err
@@ -50,7 +49,7 @@ to quickly create a Cobra application.`,
 
 		factory := models.NewDockerFactory(cmd.Context(), cli)
 
-		if _, err = global.VerifyNetwork(ctx, cli); err != nil {
+		if err = global.VerifyNetwork(factory); err != nil {
 			return err
 		}
 

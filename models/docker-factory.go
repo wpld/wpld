@@ -32,3 +32,11 @@ func (f DockerFactory) Image(name string) ImageAPI {
 		name: name,
 	}
 }
+
+func (f DockerFactory) Network(name string) NetworkAPI {
+	return Network{
+		ctx:  f.ctx,
+		cli:  f.cli,
+		name: name,
+	}
+}

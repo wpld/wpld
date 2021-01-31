@@ -15,6 +15,7 @@ func StartArbitraryContainer(factory models.DockerFactory, service *viper.Viper,
 	}
 
 	img := factory.Image(config.Image)
+	// TODO: pull image if it doesn't exist
 	if pull {
 		if err := img.Pull(); err != nil {
 			return err
