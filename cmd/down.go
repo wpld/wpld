@@ -8,14 +8,15 @@ import (
 	"os"
 	"wpld/cases"
 	"wpld/global"
+	"wpld/models"
 	"wpld/utils"
 )
 
 var downCmd = &cobra.Command{
 	SilenceUsage: true,
-	Args: cobra.NoArgs,
-	Use: "down",
-	Short: "A brief description of your command",
+	Args:         cobra.NoArgs,
+	Use:          "down",
+	Short:        "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -37,26 +38,16 @@ to quickly create a Cobra application.`,
 			return err
 		}
 
-		ctx := cmd.Context()
 		cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
 			return err
 		}
 
+		factory := models.NewDockerFactory(cmd.Context(), cli)
+
 		rm := false
 		if rmFlag, rmErr := cmd.Flags().GetBool("rm"); rmErr == nil {
 			rm = rmFlag
-		}
-
-		nginx := cases.CreateArbitraryContainer(config.Sub("nginx"))
-		if err = nginx.Stop(ctx, cli); err != nil {
-			return err
-		}
-
-		if rm {
-			if rmErr := nginx.Remove(ctx, cli); rmErr != nil {
-				return rmErr
-			}
 		}
 
 		all := false
@@ -64,53 +55,42 @@ to quickly create a Cobra application.`,
 			all = allFlag
 		}
 
-		wp := cases.CreateArbitraryContainer(config.Sub("wordpress"))
-		if err = wp.Stop(ctx, cli); err != nil {
+		if err = cases.StopArbitraryContainer(factory, config.Sub("nginx"), rm); err != nil {
 			return err
 		}
 
-		if rm {
-			if rmErr := wp.Remove(ctx, cli); rmErr != nil {
-				return rmErr
-			}
+		if err = cases.StopArbitraryContainer(factory, config.Sub("wordpress"), rm); err != nil {
+			return err
 		}
 
 		prefix := utils.Slugify(config.GetString("name"))
 		services := config.Sub("services")
-		for key, _ := range services.AllSettings() {
+		for key := range services.AllSettings() {
 			service := services.Sub(key)
-			service.SetDefault("name", prefix + "_" + key)
-
-			ctrn := cases.CreateArbitraryContainer(service)
-			if err = ctrn.Stop(ctx, cli); err != nil {
+			service.SetDefault("name", prefix+"_"+key)
+			if err = cases.StopArbitraryContainer(factory, service, rm); err != nil {
 				return err
-			}
-
-			if rm {
-				if rmErr := ctrn.Remove(ctx, cli); rmErr != nil {
-					return rmErr
-				}
 			}
 		}
 
-		if ! all {
+		if !all {
 			return nil
 		}
 
 		// TODO: stop containers using goroutines
-		if err = global.StopMyAdmin(ctx, cli, rm); err != nil {
+		if err = global.StopMyAdmin(factory, rm); err != nil {
 			return err
 		}
 
-		if err = global.StopMySQL(ctx, cli, rm); err != nil {
+		if err = global.StopMySQL(factory, rm); err != nil {
 			return err
 		}
 
-		if err = global.StopDnsMasq(ctx, cli, rm); err != nil {
+		if err = global.StopDnsMasq(factory, rm); err != nil {
 			return err
 		}
 
-		if err = global.StopNginxProxy(ctx, cli, rm); err != nil {
+		if err = global.StopNginxProxy(factory, rm); err != nil {
 			return err
 		}
 

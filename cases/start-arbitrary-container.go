@@ -5,12 +5,20 @@ import (
 	"github.com/spf13/viper"
 	"strings"
 	"wpld/global"
+	"wpld/models"
 	"wpld/utils"
 )
 
-func CreateArbitraryContainer(service *viper.Viper) *utils.Container {
-	create := &container.Config{
+func StartArbitraryContainer(factory models.DockerFactory, service *viper.Viper, pull bool) error {
+	config := &container.Config{
 		Image: service.GetString("image"),
+	}
+
+	img := factory.Image(config.Image)
+	if pull {
+		if err := img.Pull(); err != nil {
+			return err
+		}
 	}
 
 	host := &container.HostConfig{
@@ -28,15 +36,16 @@ func CreateArbitraryContainer(service *viper.Viper) *utils.Container {
 
 	env := service.GetStringMapString("env")
 	if len(env) > 0 {
-		create.Env = []string{}
+		config.Env = []string{}
 		for key, value := range env {
-			create.Env = append(create.Env, strings.ToUpper(key)+"="+value)
+			config.Env = append(config.Env, strings.ToUpper(key)+"="+value)
 		}
 	}
 
-	return &utils.Container{
-		Name:   service.GetString("name"),
-		Create: create,
-		Host:   host,
+	cntr := factory.Container(service.GetString("name"))
+	if err := cntr.Create(config, host); err != nil {
+		return err
 	}
+
+	return cntr.Start()
 }
