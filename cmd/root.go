@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"github.com/MakeNowJust/heredoc"
 	"github.com/mitchellh/go-homedir"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/afero"
@@ -18,7 +19,6 @@ var (
 		Args:          cobra.NoArgs,
 		Use:           "wpld",
 		Short:         "short desc",
-		Long:          "long desc",
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			logrus.Debugf("Running {%s} command...", cmd.Use)
 		},
@@ -48,6 +48,10 @@ func init() {
 		initConfig,
 		initLogger,
 	)
+
+	rootCmd.Long = heredoc.Doc(`
+		long desc
+	`)
 
 	rootCmd.PersistentFlags().StringVar(
 		&configFilename,

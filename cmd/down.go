@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
 	"wpld/cases"
 	"wpld/global"
@@ -13,16 +14,19 @@ var downCmd = &cobra.Command{
 	Args:         cobra.NoArgs,
 	Use:          "down",
 	Short:        "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	RunE: runDown,
+	RunE:         runDown,
 }
 
 func init() {
+	downCmd.Long = heredoc.Doc(`
+		A longer description that spans multiple lines and likely contains examples
+		and usage of using your command. For example:
+		
+		Cobra is a CLI library for Go that empowers applications.
+		This application is a tool to generate the needed files
+		to quickly create a Cobra application.
+	`)
+
 	rootCmd.AddCommand(downCmd)
 
 	flags := downCmd.Flags()
