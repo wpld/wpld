@@ -19,14 +19,14 @@ var newQuestions = []*survey.Question{
 	{
 		Name:     "Name",
 		Validate: survey.Required,
-		Prompt:   &survey.Input{
+		Prompt: &survey.Input{
 			Message: "What is the title of your site?",
 		},
 	},
 	{
 		Name:     "Hostname",
 		Validate: survey.Required,
-		Prompt:   &survey.Input{
+		Prompt: &survey.Input{
 			Message: "What is the primary hostname for your site? (Ex: docker.test)",
 		},
 	},
@@ -72,12 +72,12 @@ func runNew(_ *cobra.Command, _ []string) error {
 
 	config.Services["cache"] = compose.Service{
 		Image: "memcached:latest",
-		Name: fmt.Sprintf("%s_cache", slug),
+		Name:  fmt.Sprintf("%s_cache", slug),
 	}
 
 	config.Services["nginx"] = compose.Service{
 		Image: "nginx:latest",
-		Name: fmt.Sprintf("%s_nginx", slug),
+		Name:  fmt.Sprintf("%s_nginx", slug),
 		Volumes: []string{
 			"nginx/default.conf.template:/etc/nginx/templates/default.conf.template",
 			"wordpress:/var/www/html",
@@ -93,12 +93,13 @@ func runNew(_ *cobra.Command, _ []string) error {
 	config.Services["wordpress"] = compose.Service{
 		Name: fmt.Sprintf("%s_wordpress", slug),
 		Build: compose.Build{
+			Name:       fmt.Sprintf("wp-phpfpm-dev-%s", slug),
 			Dockerfile: "Dockerfile",
-			Context: "php",
+			Context:    "php",
 			Args: map[string]string{
-				"PHP_IMAGE": "8.0-fpm-alpine",
+				"PHP_IMAGE":    "8.0-fpm-alpine",
 				"CALLING_USER": "",
-				"CALLING_UID": "",
+				"CALLING_UID":  "",
 			},
 		},
 		Volumes: []string{
