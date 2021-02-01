@@ -51,21 +51,17 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		pull = pullFlag
 	}
 
-	// TODO: start containers using goroutines
-	if err = global.RunNginxProxy(factory, pull); err != nil {
-		return err
+	runContainers := []func(models.DockerFactory, bool) error{
+		global.RunNginxProxy,
+		global.RunDnsMasq,
+		global.RunMySQL,
+		global.RunMyAdmin,
 	}
 
-	if err = global.RunDnsMasq(factory, pull); err != nil {
-		return err
-	}
-
-	if err = global.RunMySQL(factory, pull); err != nil {
-		return err
-	}
-
-	if err = global.RunMyAdmin(factory, pull); err != nil {
-		return err
+	for _, runContainer := range runContainers {
+		if runErr := runContainer(factory, pull); runErr != nil {
+			return runErr
+		}
 	}
 
 	if err = global.WaitForMySQL(); err != nil {

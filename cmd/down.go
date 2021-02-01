@@ -75,21 +75,17 @@ func runDown(cmd *cobra.Command, _ []string) error {
 		return nil
 	}
 
-	// TODO: stop containers using goroutines
-	if err = global.StopMyAdmin(factory, rm); err != nil {
-		return err
+	stopContainers := []func(models.DockerFactory, bool) error{
+		global.StopMyAdmin,
+		global.StopMySQL,
+		global.StopDnsMasq,
+		global.StopNginxProxy,
 	}
 
-	if err = global.StopMySQL(factory, rm); err != nil {
-		return err
-	}
-
-	if err = global.StopDnsMasq(factory, rm); err != nil {
-		return err
-	}
-
-	if err = global.StopNginxProxy(factory, rm); err != nil {
-		return err
+	for _, stopContainer := range stopContainers {
+		if stopErr := stopContainer(factory, rm); stopErr != nil {
+			return stopErr
+		}
 	}
 
 	return nil

@@ -9,7 +9,7 @@ import (
 )
 
 type ContainerAPI interface {
-	Create(config *container.Config, host *container.HostConfig) error
+	Create(*container.Config, *container.HostConfig) error
 	Inspect() (types.ContainerJSON, error)
 	Remove() error
 	Start() error
