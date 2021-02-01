@@ -57,14 +57,6 @@ func runDown(cmd *cobra.Command, _ []string) error {
 		all = allFlag
 	}
 
-	if err = cases.StopArbitraryContainer(factory, config.Sub("nginx"), rm); err != nil {
-		return err
-	}
-
-	if err = cases.StopArbitraryContainer(factory, config.Sub("wordpress"), rm); err != nil {
-		return err
-	}
-
 	prefix := utils.Slugify(config.GetString("name"))
 	services := config.Sub("services")
 	for key := range services.AllSettings() {

@@ -2,14 +2,14 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"gopkg.in/yaml.v2"
 	"path/filepath"
+	"wpld/compose"
 	"wpld/global"
 	"wpld/templates"
 	"wpld/utils"
@@ -19,14 +19,14 @@ var newQuestions = []*survey.Question{
 	{
 		Name:     "Name",
 		Validate: survey.Required,
-		Prompt: &survey.Input{
+		Prompt:   &survey.Input{
 			Message: "What is the title of your site?",
 		},
 	},
 	{
 		Name:     "Hostname",
 		Validate: survey.Required,
-		Prompt: &survey.Input{
+		Prompt:   &survey.Input{
 			Message: "What is the primary hostname for your site? (Ex: docker.test)",
 		},
 	},
@@ -54,74 +54,73 @@ func init() {
 }
 
 func runNew(_ *cobra.Command, _ []string) error {
-	answers := struct {
-		Name     string
-		Hostname string
-	}{}
-
-	if err := survey.Ask(newQuestions, &answers); err != nil {
+	var config compose.Compose
+	if err := survey.Ask(newQuestions, &config); err != nil {
 		if errors.Is(err, terminal.InterruptErr) {
 			return nil
 		}
 		return err
 	}
 
-	slug := utils.Slugify(answers.Name)
+	slug := utils.Slugify(config.Name)
 
-	wpldFilepath := "wpld.yaml"
-	nginxTemplateFilepath := filepath.FromSlash("config/nginx/default.conf.template")
+	wpldFilepath := filepath.FromSlash(".wpld/config.yaml")
+	phpDockerfileFilepath := filepath.FromSlash(".wpld/php/Dockerfile")
+	nginxTemplateFilepath := filepath.FromSlash(".wpld/nginx/default.conf.template")
 
-	compose := viper.New()
+	config.Services = make(map[string]compose.Service)
 
-	compose.Set("name", answers.Name)
-	compose.Set("hostname", answers.Hostname)
+	config.Services["cache"] = compose.Service{
+		Image: "memcached:latest",
+		Name: fmt.Sprintf("%s_cache", slug),
+	}
 
-	compose.Set("nginx.image", "nginx:latest")
-	compose.Set("nginx.name", slug+"_nginx")
-	compose.Set("nginx.volumes", []string{
-		nginxTemplateFilepath + ":/etc/nginx/templates/default.conf.template",
-		"wordpress:/var/www/html",
-	})
-	compose.Set("nginx.env", map[string]string{
-		"HTTPS_METHOD": "noredirect",
-		"VIRTUAL_HOST": answers.Hostname,
-		"CERT_NAME":    slug,
-		"PHPFPM_HOST":  slug + "_wordpress",
-	})
+	config.Services["nginx"] = compose.Service{
+		Image: "nginx:latest",
+		Name: fmt.Sprintf("%s_nginx", slug),
+		Volumes: []string{
+			"nginx/default.conf.template:/etc/nginx/templates/default.conf.template",
+			"wordpress:/var/www/html",
+		},
+		Env: map[string]string{
+			"HTTPS_METHOD": "noredirect",
+			"VIRTUAL_HOST": config.Hostname,
+			"CERT_NAME":    slug,
+			"PHPFPM_HOST":  fmt.Sprintf("%s_wordpress", slug),
+		},
+	}
 
-	compose.Set("wordpress.image", "wordpress:fpm")
-	compose.Set("wordpress.name", slug+"_wordpress")
-	compose.Set("wordpress.volumes", []string{
-		"wordpress:/var/www/html",
-	})
-	compose.Set("wordpress.env", map[string]string{
-		"WORDPRESS_DB_HOST":     global.MYSQL_CONTAINER_NAME,
-		"WORDPRESS_DB_USER":     "root",
-		"WORDPRESS_DB_PASSWORD": "password",
-		"WORDPRESS_DB_NAME":     slug,
-	})
-
-	compose.Set("services.cache.image", "memcached:latest")
-	compose.Set("services.cache.name", slug+"_cache")
-
-	config, err := yaml.Marshal(compose.AllSettings())
-	if err != nil {
-		return err
+	config.Services["wordpress"] = compose.Service{
+		Name: fmt.Sprintf("%s_wordpress", slug),
+		Build: compose.Build{
+			Dockerfile: "Dockerfile",
+			Context: "php",
+			Args: map[string]string{
+				"PHP_IMAGE": "8.0-fpm-alpine",
+				"CALLING_USER": "",
+				"CALLING_UID": "",
+			},
+		},
+		Volumes: []string{
+			"wordpress:/var/www/html",
+		},
+		Env: map[string]string{
+			"WORDPRESS_DB_HOST":     global.MYSQL_CONTAINER_NAME,
+			"WORDPRESS_DB_USER":     "root",
+			"WORDPRESS_DB_PASSWORD": "password",
+			"WORDPRESS_DB_NAME":     slug,
+		},
 	}
 
 	fs := afero.NewOsFs()
-	if wpDirErr := fs.MkdirAll(filepath.Join(slug, "wordpress"), 0755); wpDirErr != nil {
-		return wpDirErr
-	}
-
 	files := map[string][]byte{
-		wpldFilepath:          config,
+		wpldFilepath:          config.Serialize(),
+		phpDockerfileFilepath: []byte(templates.PHP_DOCKERFILE),
 		nginxTemplateFilepath: []byte(templates.NGINX_TEMPLATE),
 	}
 
 	for filename, data := range files {
 		path := filepath.Join(slug, filename)
-
 		if mkdirErr := fs.MkdirAll(filepath.Dir(path), 0755); mkdirErr != nil {
 			return mkdirErr
 		}

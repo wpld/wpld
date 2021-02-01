@@ -72,14 +72,6 @@ func runUp(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	if err = cases.StartArbitraryContainer(factory, config.Sub("wordpress"), pull); err != nil {
-		return err
-	}
-
-	if err = cases.StartArbitraryContainer(factory, config.Sub("nginx"), pull); err != nil {
-		return err
-	}
-
 	prefix := utils.Slugify(config.GetString("name"))
 	services := config.Sub("services")
 	for key := range services.AllSettings() {
