@@ -89,7 +89,6 @@ func initConfig() {
 	viper.SetDefault(config.MYSQL_RESERVATION, "256MiB")
 
 	viper.SetDefault(config.PHPMYADMIN_PORT, "8092")
-	viper.SetDefault(config.PHPMYADMIN_UPLOAD_LIMIT, "1GiB")
 
 	_ = viper.SafeWriteConfig()
 	if err := viper.ReadInConfig(); err != nil {

@@ -66,7 +66,7 @@ func RunMyAdmin(factory models.DockerFactory, pull bool) error {
 		Image: MYADMIN_IMAGE_NAME,
 		Env: []string{
 			"PMA_USER_CONFIG_BASE64=" + getBase64EncodedPMAConfig(),
-			"UPLOAD_LIMIT=" + viper.GetString(config.PHPMYADMIN_UPLOAD_LIMIT),
+			"UPLOAD_LIMIT=1024MiB",
 		},
 	}
 
