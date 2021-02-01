@@ -89,7 +89,7 @@ func runNew(_ *cobra.Command, _ []string) error {
 		"PHPFPM_HOST":  slug + "_wordpress",
 	})
 
-	compose.Set("wordpress.image", "wordpress:latest")
+	compose.Set("wordpress.image", "wordpress:fpm")
 	compose.Set("wordpress.name", slug+"_wordpress")
 	compose.Set("wordpress.volumes", []string{
 		"wordpress:/var/www/html",

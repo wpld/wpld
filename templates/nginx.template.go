@@ -12,12 +12,21 @@ server {
 	index index.php;
 
 	location / {
-		try_files $uri $uri/ /index.php?$args;
+	    try_files $uri $uri/ /index.php?$args;
 	}
 
 	location ~ \.php$ {
-		proxy_pass http://${PHPFPM_HOST};
-		proxy_set_header Host $host;
+	    try_files $uri =404;
+	    fastcgi_split_path_info ^(.+\.php)(/.+)$;
+
+	    include /etc/nginx/fastcgi_params;
+	    # Long timeout to allow more time with Xdebug
+	    fastcgi_read_timeout 3600s;
+	    fastcgi_buffer_size 128k;
+	    fastcgi_buffers 4 128k;
+	    fastcgi_pass ${PHPFPM_HOST}:9000;
+	    fastcgi_index index.php;
+	    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 	}
 }
 `
