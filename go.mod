@@ -7,6 +7,7 @@ require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/Microsoft/go-winio v0.4.16 // indirect
 	github.com/containerd/containerd v1.4.3 // indirect
+	github.com/containerd/continuity v0.0.0-20201208142359-180525291bb7 // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v20.10.2+incompatible
 	github.com/docker/go-connections v0.4.0
@@ -18,10 +19,12 @@ require (
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/moby/sys/mount v0.2.0 // indirect
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
+	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/sirupsen/logrus v1.7.0
 	github.com/spf13/afero v1.5.1
 	github.com/spf13/cobra v1.1.1

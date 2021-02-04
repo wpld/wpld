@@ -7,15 +7,15 @@ var PHP_DOCKERFILE = heredoc.Doc(`
 	FROM ${PHP_IMAGE}
 
 	ARG CALLING_USER=www-data
-	ARG CALLING_UID=33
+	ARG CALLING_UID=82
 	
 	USER root
 	
-	RUN useradd ${CALLING_USER} -u ${CALLING_UID}
-	RUN mkdir -p /run/php-fpm
-	RUN chown ${CALLING_USER} /run/php-fpm
-	RUN chown ${CALLING_USER} /var/log/php-fpm
-	RUN touch /usr/local/etc/msmtprc && chown ${CALLING_USER} $_
+	RUN adduser -u ${CALLING_UID} -D -S -G www-data ${CALLING_USER}
+	#RUN mkdir -p /run/php-fpm
+	#RUN chown ${CALLING_USER} /run/php-fpm
+	#RUN chown ${CALLING_USER} /var/log/php-fpm
+	#RUN touch /usr/local/etc/msmtprc && chown ${CALLING_USER} $_
 	
 	USER ${CALLING_USER}
 `)

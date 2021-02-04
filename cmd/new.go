@@ -97,9 +97,9 @@ func runNew(_ *cobra.Command, _ []string) error {
 			Dockerfile: "Dockerfile",
 			Context:    "php",
 			Args: map[string]string{
-				"PHP_IMAGE":    "8.0-fpm-alpine",
-				"CALLING_USER": "",
-				"CALLING_UID":  "",
+				"PHP_IMAGE":    "php:8.0-fpm-alpine",
+				"CALLING_USER": "!GetUser",
+				"CALLING_UID":  "!GetUid",
 			},
 		},
 		Volumes: []string{
