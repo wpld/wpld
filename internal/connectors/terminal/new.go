@@ -12,7 +12,7 @@ var newCmd = &cobra.Command{
 	Use:           "new",
 	Short:         "new short desc",
 	RunE: func(c *cobra.Command, args []string) error {
-		return cases.NewProject.Run(c.Context())
+		return cases.NewProjectPipeline(fs).Run(c.Context())
 	},
 }
 
