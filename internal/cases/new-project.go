@@ -1,6 +1,7 @@
 package cases
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -28,26 +29,37 @@ func newProjectPromptPipe() pipelines.Pipe {
 		var answers struct {
 			Name    string
 			Domains []string
+			PHP     string `survey:"php"`
 		}
 
 		questions := []*survey.Question{
 			{
-				Name:     "Name",
+				Name:     "name",
 				Prompt:   &survey.Input{Message: "Project name:"},
 				Validate: survey.Required,
 			},
 			{
-				Name:     "Domains",
+				Name:     "domains",
 				Prompt:   &survey.Input{Message: "Domain names:"},
 				Validate: survey.Required,
 				Transform: func(answer interface{}) interface{} {
-					domains, ok := answer.(string)
-					if !ok {
+					if domains, ok := answer.(string); ok {
+						return regexp.MustCompile(`[,\s]+`).Split(domains, -1)
+					} else {
 						return answer
 					}
-
-					exp := regexp.MustCompile(`[,\s]+`)
-					return exp.Split(domains, -1)
+				},
+			},
+			{
+				Name: "php",
+				Prompt: &survey.Select{
+					Message: "PHP version:",
+					Default: "7.4",
+					Options: []string{
+						"8.0",
+						"7.4",
+						"7.3",
+					},
 				},
 			},
 		}
@@ -62,6 +74,7 @@ func newProjectPromptPipe() pipelines.Pipe {
 		}
 
 		projectSlug := slug.Make(answers.Name)
+		wpVolume := fmt.Sprintf("%s__wp", projectSlug)
 
 		return next(context.WithValue(
 			ctx,
@@ -70,7 +83,35 @@ func newProjectPromptPipe() pipelines.Pipe {
 				Name:    answers.Name,
 				Domains: answers.Domains,
 				Volumes: []string{
-					fmt.Sprintf("%s__wp", projectSlug),
+					wpVolume,
+				},
+				Services: map[string]entities.Service{
+					"wp": {
+						Name:  "WordPress",
+						Image: fmt.Sprintf("wordpress:5-php%s-fpm-alpine", answers.PHP),
+						Volumes: []string{
+							fmt.Sprintf("%s:/var/www/html", wpVolume),
+						},
+						Env: map[string]string{
+							"WORDPRESS_DB_HOST":     "db",
+							"WORDPRESS_DB_USER":     "wordpress",
+							"WORDPRESS_DB_PASSWORD": "password",
+							"WORDPRESS_DB_NAME":     projectSlug,
+						},
+					},
+					"db": {
+						Name:  "Database",
+						Image: "mariadb:latest",
+						Ports: []string{
+							"3306:3306",
+						},
+						Env: map[string]string{
+							"MYSQL_DATABASE":           projectSlug,
+							"MYSQL_USER":               "wordpress",
+							"MYSQL_PASSWORD":           "password",
+							"MYSQL_INITDB_SKIP_TZINFO": "skip",
+						},
+					},
 				},
 			},
 		))
@@ -79,12 +120,16 @@ func newProjectPromptPipe() pipelines.Pipe {
 
 func newProjectMarshalPipe(fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
-		data, err := yaml.Marshal(ctx.Value("project"))
-		if err != nil {
+		buffer := bytes.NewBufferString("")
+
+		encoder := yaml.NewEncoder(buffer)
+		encoder.SetIndent(2)
+
+		if err := encoder.Encode(ctx.Value("project")); err != nil {
 			return err
 		}
 
-		if err = afero.WriteFile(fs, ".wpld.yml", data, 0644); err != nil {
+		if err := afero.WriteFile(fs, ".wpld.yml", buffer.Bytes(), 0644); err != nil {
 			return err
 		}
 
