@@ -7,8 +7,10 @@ import (
 )
 
 var newCmd = &cobra.Command{
-	Use:   "new",
-	Short: "new short desc",
+	SilenceUsage:  true,
+	SilenceErrors: true,
+	Use:           "new",
+	Short:         "new short desc",
 	RunE: func(c *cobra.Command, args []string) error {
 		return cases.NewProject.Run(c.Context())
 	},
