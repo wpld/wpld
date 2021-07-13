@@ -47,6 +47,7 @@ func (p Project) GetServices() ([]Service, error) {
 
 				service := Service{
 					ID:      p.GetContainerIDForService(id),
+					Alias:   id,
 					Network: p.GetNetworkName(),
 					Spec:    p.Services[id],
 				}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
@@ -149,7 +150,17 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		}
 	}
 
-	resp, err := d.api.ContainerCreate(ctx, &config, &host, nil, nil, service.ID)
+	networking := network.NetworkingConfig{
+		EndpointsConfig: map[string]*network.EndpointSettings{
+			service.Network: {
+				Aliases: []string{
+					service.Alias,
+				},
+			},
+		},
+	}
+
+	resp, err := d.api.ContainerCreate(ctx, &config, &host, &networking, nil, service.ID)
 	if err != nil {
 		return err
 	}
