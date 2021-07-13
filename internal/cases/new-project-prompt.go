@@ -98,12 +98,8 @@ func NewProjectPromptPipe() pipelines.Pipe {
 		}
 
 		nginx := entities.Specification{
-			Name:  "Nginx",
-			Image: "nginx:alpine",
-			Ports: []string{
-				"80:80",
-				"443:443",
-			},
+			Name:    "Nginx",
+			Image:   "nginx:alpine",
 			Volumes: []string{},
 			VolumesFrom: []string{
 				"wp",

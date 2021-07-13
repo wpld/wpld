@@ -8,6 +8,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
@@ -119,6 +120,9 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		Image:       service.Spec.Image,
 		WorkingDir:  service.Spec.WorkingDir,
 		Entrypoint:  service.Spec.Entrypoint,
+		Labels: map[string]string{
+			"wpld.project": service.Project,
+		},
 	}
 
 	envLen := len(service.Spec.Env)
@@ -199,6 +203,27 @@ func (d Docker) StopContainer(ctx context.Context, service entities.Service) err
 	}
 
 	logrus.Infof("%s stopped", service.Spec.Name)
+
+	return nil
+}
+
+func (d Docker) FindHTTPContainers(ctx context.Context) error {
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("label", "wpld.project")
+	filterArgs.Add("expose", "80")
+
+	args := types.ContainerListOptions{
+		Filters: filterArgs,
+	}
+
+	conts, err := d.api.ContainerList(ctx, args)
+	if err != nil {
+		return err
+	}
+
+	for _, cont := range conts {
+		logrus.Info(cont.Names[0])
+	}
 
 	return nil
 }

@@ -27,6 +27,7 @@ var downCmd = &cobra.Command{
 		pipeline := pipelines.NewPipeline(
 			cases.ProjectUnmarshalPipe(fs),
 			cases.StopContainersPipe(api),
+			cases.ReloadProxyPipe(api),
 		)
 
 		return pipeline.Run(cmd.Context())

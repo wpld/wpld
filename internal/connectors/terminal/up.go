@@ -28,6 +28,7 @@ var upCmd = &cobra.Command{
 		pipeline := pipelines.NewPipeline(
 			cases.ProjectUnmarshalPipe(fs),
 			cases.StartContainersPipe(api, false), // TODO: replace "false" with the "--pull" flag value
+			cases.ReloadProxyPipe(api),
 		)
 
 		return pipeline.Run(c.Context())
