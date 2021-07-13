@@ -10,7 +10,7 @@ import (
 
 func ReloadProxyPipe(api docker.Docker) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
-		err := api.FindHTTPContainers(ctx)
+		_, err := api.FindHTTPContainers(ctx)
 		if err != nil {
 			return err
 		}
@@ -20,8 +20,8 @@ func ReloadProxyPipe(api docker.Docker) pipelines.Pipe {
 			Spec: entities.Specification{
 				Image: "jwilder/nginx-proxy:alpine",
 				Ports: []string{
-					"127.0.0.1:80:80",
 					"127.0.0.1:443:443",
+					"127.0.0.1:80:80",
 				},
 				Volumes: []string{
 					"/var/run/docker.sock:/tmp/docker.sock:ro",

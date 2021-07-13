@@ -160,13 +160,11 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	}
 
 	var networking *network.NetworkingConfig
-	if service.Alias != "" {
+	if len(service.Aliases) > 0 {
 		networking = &network.NetworkingConfig{
 			EndpointsConfig: map[string]*network.EndpointSettings{
 				service.Network: {
-					Aliases: []string{
-						service.Alias,
-					},
+					Aliases: service.Aliases,
 				},
 			},
 		}
@@ -219,7 +217,7 @@ func (d Docker) StopContainer(ctx context.Context, service entities.Service) err
 	return nil
 }
 
-func (d Docker) FindHTTPContainers(ctx context.Context) error {
+func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, error) {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("label", "wpld.project")
 	filterArgs.Add("expose", "80")
@@ -228,14 +226,23 @@ func (d Docker) FindHTTPContainers(ctx context.Context) error {
 		Filters: filterArgs,
 	}
 
-	conts, err := d.api.ContainerList(ctx, args)
+	list, err := d.api.ContainerList(ctx, args)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, cont := range conts {
-		logrus.Info(cont.Labels["wpld.domains"])
+	domainMapping := make(map[string]string)
+	for _, c := range list {
+		label, ok := c.Labels["wpld.domains"]
+		if !ok {
+			continue
+		}
+
+		domains := strings.Split(label, ",")
+		for _, domain := range domains {
+			domainMapping[domain] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+		}
 	}
 
-	return nil
+	return domainMapping, nil
 }

@@ -45,13 +45,17 @@ func (p Project) GetServices() ([]Service, error) {
 				ready.Add(id)
 				delete(deps, id)
 
+				containerID := p.GetContainerIDForService(id)
 				service := Service{
-					ID:      p.GetContainerIDForService(id),
-					Alias:   id,
+					ID:      containerID,
 					Network: p.GetNetworkName(),
 					Project: p.ID,
 					Spec:    p.Services[id],
 					Domains: p.Domains,
+					Aliases: []string{
+						id,
+						containerID,
+					},
 				}
 
 				for i, from := range service.Spec.VolumesFrom {
