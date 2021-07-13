@@ -1,7 +1,6 @@
 package cases
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,21 +9,12 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/gosimple/slug"
-	"github.com/spf13/afero"
-	"gopkg.in/yaml.v3"
 
 	"wpld/internal/controllers/pipelines"
 	"wpld/internal/entities"
 )
 
-func NewProjectPipeline(fs afero.Fs) pipelines.Pipeline {
-	return pipelines.NewPipeline(
-		newProjectPromptPipe(),
-		newProjectMarshalPipe(fs),
-	)
-}
-
-func newProjectPromptPipe() pipelines.Pipe {
+func NewProjectPromptPipe() pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		var answers struct {
 			Name    string
@@ -78,7 +68,7 @@ func newProjectPromptPipe() pipelines.Pipe {
 		wpVolume := fmt.Sprintf("%s__wp", projectSlug)
 		dbVolume := fmt.Sprintf("%s__db", projectSlug)
 
-		wp := entities.Service{
+		wp := entities.Specification{
 			Name:  "WordPress",
 			Image: fmt.Sprintf("wordpress:5-php%s-fpm-alpine", answers.PHP),
 			Volumes: []string{
@@ -92,13 +82,14 @@ func newProjectPromptPipe() pipelines.Pipe {
 			},
 		}
 
-		db := entities.Service{
+		db := entities.Specification{
 			Name:  "Database",
 			Image: "mariadb:latest",
 			Volumes: []string{
-				dbVolume,
+				fmt.Sprintf("%s:/var/lib/mysql", dbVolume),
 			},
 			Env: map[string]string{
+				"MYSQL_ROOT_PASSWORD":      "password",
 				"MYSQL_DATABASE":           projectSlug,
 				"MYSQL_USER":               "wordpress",
 				"MYSQL_PASSWORD":           "password",
@@ -106,7 +97,7 @@ func newProjectPromptPipe() pipelines.Pipe {
 			},
 		}
 
-		nginx := entities.Service{
+		nginx := entities.Specification{
 			Name:  "Nginx",
 			Image: "nginx:alpine",
 			Ports: []string{
@@ -117,43 +108,28 @@ func newProjectPromptPipe() pipelines.Pipe {
 			VolumesFrom: []string{
 				"wp",
 			},
+			DependsOn: []string{
+				"wp",
+			},
 		}
 
 		return next(context.WithValue(
 			ctx,
 			"project",
 			entities.Project{
+				ID:      projectSlug,
 				Name:    answers.Name,
 				Domains: answers.Domains,
 				Volumes: []string{
 					wpVolume,
 					dbVolume,
 				},
-				Services: map[string]entities.Service{
+				Services: map[string]entities.Specification{
 					"wp":    wp,
 					"db":    db,
 					"nginx": nginx,
 				},
 			},
 		))
-	}
-}
-
-func newProjectMarshalPipe(fs afero.Fs) pipelines.Pipe {
-	return func(ctx context.Context, next pipelines.NextPipe) error {
-		buffer := bytes.NewBufferString("")
-
-		encoder := yaml.NewEncoder(buffer)
-		encoder.SetIndent(2)
-
-		if err := encoder.Encode(ctx.Value("project")); err != nil {
-			return err
-		}
-
-		if err := afero.WriteFile(fs, ".wpld.yml", buffer.Bytes(), 0644); err != nil {
-			return err
-		}
-
-		return next(ctx)
 	}
 }

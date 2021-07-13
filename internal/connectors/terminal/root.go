@@ -1,11 +1,9 @@
 package terminal
 
 import (
-	"github.com/spf13/afero"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
-
-var fs = afero.NewOsFs()
 
 var rootCmd = &cobra.Command{
 	Use:   "wpld",
@@ -15,6 +13,6 @@ var rootCmd = &cobra.Command{
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		panic(err)
+		logrus.Fatal(err)
 	}
 }

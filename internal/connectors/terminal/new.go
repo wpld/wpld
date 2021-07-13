@@ -1,9 +1,11 @@
 package terminal
 
 import (
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
 	"wpld/internal/cases"
+	"wpld/internal/controllers/pipelines"
 )
 
 var newCmd = &cobra.Command{
@@ -12,7 +14,14 @@ var newCmd = &cobra.Command{
 	Use:           "new",
 	Short:         "new short desc",
 	RunE: func(c *cobra.Command, args []string) error {
-		return cases.NewProjectPipeline(fs).Run(c.Context())
+		fs := afero.NewOsFs()
+
+		pipeline := pipelines.NewPipeline(
+			cases.NewProjectPromptPipe(),
+			cases.ProjectMarshalPipe(fs),
+		)
+
+		return pipeline.Run(c.Context())
 	},
 }
 
