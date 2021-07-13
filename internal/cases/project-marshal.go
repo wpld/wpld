@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 
-	"wpld/internal/controllers/pipelines"
+	"wpld/internal/pipelines"
 )
 
 func ProjectMarshalPipe(fs afero.Fs) pipelines.Pipe {

@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"wpld/internal/cases"
-	"wpld/internal/controllers/pipelines"
+	"wpld/internal/pipelines"
 )
 
 var newCmd = &cobra.Command{

@@ -10,8 +10,8 @@ import (
 	"github.com/AlecAivazis/survey/v2/terminal"
 	"github.com/gosimple/slug"
 
-	"wpld/internal/controllers/pipelines"
 	"wpld/internal/entities"
+	"wpld/internal/pipelines"
 )
 
 func NewProjectPromptPipe() pipelines.Pipe {

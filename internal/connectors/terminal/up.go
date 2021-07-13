@@ -6,7 +6,7 @@ import (
 
 	"wpld/internal/cases"
 	"wpld/internal/connectors/docker"
-	"wpld/internal/controllers/pipelines"
+	"wpld/internal/pipelines"
 )
 
 var upCmd = &cobra.Command{

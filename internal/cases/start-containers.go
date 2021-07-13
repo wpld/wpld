@@ -5,8 +5,8 @@ import (
 	"errors"
 
 	"wpld/internal/connectors/docker"
-	"wpld/internal/controllers/pipelines"
 	"wpld/internal/entities"
+	"wpld/internal/pipelines"
 )
 
 func StartContainersPipe(api docker.Docker, pull bool) pipelines.Pipe {
