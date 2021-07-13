@@ -51,6 +51,7 @@ func (p Project) GetServices() ([]Service, error) {
 					Network: p.GetNetworkName(),
 					Project: p.ID,
 					Spec:    p.Services[id],
+					Domains: p.Domains,
 				}
 
 				for i, from := range service.Spec.VolumesFrom {

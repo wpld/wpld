@@ -6,4 +6,5 @@ type Service struct {
 	Alias   string
 	Project string
 	Spec    Specification
+	Domains []string
 }

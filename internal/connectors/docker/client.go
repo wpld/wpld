@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -74,7 +75,7 @@ func (d Docker) EnsureNetworkExists(ctx context.Context, networkID string) error
 		Driver:         "bridge",
 		EnableIPv6:     false,
 		Internal:       false,
-		Attachable:     true,
+		Attachable:     false,
 		Labels:         basicLabels,
 	}
 
@@ -114,15 +115,19 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		return err
 	}
 
-	config := container.Config{
+	config := &container.Config{
 		Cmd:         service.Spec.Cmd,
 		Healthcheck: nil,
 		Image:       service.Spec.Image,
 		WorkingDir:  service.Spec.WorkingDir,
 		Entrypoint:  service.Spec.Entrypoint,
-		Labels: map[string]string{
+	}
+
+	if service.Project != "" {
+		config.Labels = map[string]string{
 			"wpld.project": service.Project,
-		},
+			"wpld.domains": strings.Join(service.Domains, ","),
+		}
 	}
 
 	envLen := len(service.Spec.Env)
@@ -135,7 +140,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		}
 	}
 
-	host := container.HostConfig{
+	host := &container.HostConfig{
 		Binds:       NormalizeContainerBinds(service.Spec.Volumes),
 		NetworkMode: container.NetworkMode(service.Network),
 		AutoRemove:  true,
@@ -154,17 +159,20 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		}
 	}
 
-	networking := network.NetworkingConfig{
-		EndpointsConfig: map[string]*network.EndpointSettings{
-			service.Network: {
-				Aliases: []string{
-					service.Alias,
+	var networking *network.NetworkingConfig
+	if service.Alias != "" {
+		networking = &network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{
+				service.Network: {
+					Aliases: []string{
+						service.Alias,
+					},
 				},
 			},
-		},
+		}
 	}
 
-	resp, err := d.api.ContainerCreate(ctx, &config, &host, &networking, nil, service.ID)
+	resp, err := d.api.ContainerCreate(ctx, config, host, networking, nil, service.ID)
 	if err != nil {
 		return err
 	}
@@ -185,7 +193,9 @@ func (d Docker) StartContainer(ctx context.Context, service entities.Service, pu
 		return err
 	}
 
-	logrus.Infof("%s started", service.Spec.Name)
+	if service.Spec.Name != "" {
+		logrus.Infof("%s started", service.Spec.Name)
+	}
 
 	return nil
 }
@@ -202,7 +212,9 @@ func (d Docker) StopContainer(ctx context.Context, service entities.Service) err
 		return err
 	}
 
-	logrus.Infof("%s stopped", service.Spec.Name)
+	if service.Spec.Name != "" {
+		logrus.Infof("%s stopped", service.Spec.Name)
+	}
 
 	return nil
 }
@@ -222,7 +234,7 @@ func (d Docker) FindHTTPContainers(ctx context.Context) error {
 	}
 
 	for _, cont := range conts {
-		logrus.Info(cont.Names[0])
+		logrus.Info(cont.Labels["wpld.domains"])
 	}
 
 	return nil
