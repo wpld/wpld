@@ -18,6 +18,8 @@ var newCmd = &cobra.Command{
 
 		pipeline := pipelines.NewPipeline(
 			cases.NewProjectPromptPipe(),
+			cases.ProjectStructurePipe(fs),
+			cases.ProjectNginxConfigPipe(fs),
 			cases.ProjectMarshalPipe(fs),
 		)
 
