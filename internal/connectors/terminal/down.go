@@ -4,9 +4,9 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
-	"wpld/internal/cases"
 	"wpld/internal/connectors/docker"
 	"wpld/internal/pipelines"
+	"wpld/internal/tasks"
 )
 
 var downCmd = &cobra.Command{
@@ -25,9 +25,9 @@ var downCmd = &cobra.Command{
 		fs := afero.NewOsFs()
 
 		pipeline := pipelines.NewPipeline(
-			cases.ProjectUnmarshalPipe(fs),
-			cases.StopContainersPipe(api),
-			cases.ReloadProxyPipe(api, fs),
+			tasks.ProjectUnmarshalPipe(fs),
+			tasks.StopContainersPipe(api),
+			tasks.ReloadProxyPipe(api, fs),
 		)
 
 		return pipeline.Run(cmd.Context())

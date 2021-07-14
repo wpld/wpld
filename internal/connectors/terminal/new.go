@@ -4,8 +4,8 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
-	"wpld/internal/cases"
 	"wpld/internal/pipelines"
+	"wpld/internal/tasks"
 )
 
 var newCmd = &cobra.Command{
@@ -17,10 +17,10 @@ var newCmd = &cobra.Command{
 		fs := afero.NewOsFs()
 
 		pipeline := pipelines.NewPipeline(
-			cases.NewProjectPromptPipe(),
-			cases.ProjectStructurePipe(fs),
-			cases.ProjectNginxConfigPipe(fs),
-			cases.ProjectMarshalPipe(fs),
+			tasks.NewProjectPromptPipe(),
+			tasks.ProjectStructurePipe(fs),
+			tasks.ProjectNginxConfigPipe(fs),
+			tasks.ProjectMarshalPipe(fs),
 		)
 
 		return pipeline.Run(c.Context())
