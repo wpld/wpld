@@ -89,11 +89,10 @@ func NewProjectPromptPipe() pipelines.Pipe {
 				fmt.Sprintf("%s:/var/lib/mysql", dbVolume),
 			},
 			Env: map[string]string{
-				"MYSQL_ROOT_PASSWORD":      "password",
-				"MYSQL_DATABASE":           projectSlug,
-				"MYSQL_USER":               "wordpress",
-				"MYSQL_PASSWORD":           "password",
-				"MYSQL_INITDB_SKIP_TZINFO": "skip",
+				"MYSQL_ROOT_PASSWORD": "password",
+				"MYSQL_DATABASE":      projectSlug,
+				"MYSQL_USER":          "wordpress",
+				"MYSQL_PASSWORD":      "password",
 			},
 		}
 

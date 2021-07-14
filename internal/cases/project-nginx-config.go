@@ -13,7 +13,7 @@ import (
 	"wpld/internal/pipelines"
 )
 
-//go:embed embeds/nginx.template
+//go:embed embeds/nginx/default.conf
 var nginxConfig string
 
 func ProjectNginxConfigPipe(fs afero.Fs) pipelines.Pipe {

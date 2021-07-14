@@ -126,7 +126,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	if service.Project != "" {
 		config.Labels = map[string]string{
 			"wpld.project": service.Project,
-			"wpld.domains": strings.Join(service.Domains, ","),
+			"wpld.domains": strings.Join(service.Domains, " "),
 		}
 	}
 
@@ -233,14 +233,8 @@ func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, erro
 
 	domainMapping := make(map[string]string)
 	for _, c := range list {
-		label, ok := c.Labels["wpld.domains"]
-		if !ok {
-			continue
-		}
-
-		domains := strings.Split(label, ",")
-		for _, domain := range domains {
-			domainMapping[domain] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+		if domains, ok := c.Labels["wpld.domains"]; ok {
+			domainMapping[domains] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
 		}
 	}
 
