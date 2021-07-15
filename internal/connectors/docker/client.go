@@ -104,11 +104,11 @@ func (d Docker) EnsureVolumeExists(ctx context.Context, volumeID string) error {
 }
 
 func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Service, pull bool) error {
-	_, err := d.api.ContainerInspect(ctx, service.ID)
-	if err == nil {
-		return nil
-	} else if !client.IsErrNotFound(err) {
+	exists, err := d.ContainerExists(ctx, service)
+	if err != nil {
 		return err
+	} else if exists {
+		return nil
 	}
 
 	if err := d.EnsureImageExists(ctx, service.Spec.Image, pull); err != nil {
@@ -182,6 +182,17 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	return nil
 }
 
+func (d Docker) ContainerExists(ctx context.Context, service entities.Service) (bool, error) {
+	_, err := d.api.ContainerInspect(ctx, service.ID)
+	if err == nil {
+		return true, nil
+	} else if !client.IsErrNotFound(err) {
+		return false, err
+	}
+
+	return false, nil
+}
+
 func (d Docker) StartContainer(ctx context.Context, service entities.Service, pull bool) error {
 	if err := d.EnsureContainerExists(ctx, service, pull); err != nil {
 		return err
@@ -199,11 +210,11 @@ func (d Docker) StartContainer(ctx context.Context, service entities.Service, pu
 }
 
 func (d Docker) StopContainer(ctx context.Context, service entities.Service) error {
-	_, err := d.api.ContainerInspect(ctx, service.ID)
-	if client.IsErrNotFound(err) {
-		return nil
-	} else if err != nil {
+	exists, err := d.ContainerExists(ctx, service)
+	if err != nil {
 		return err
+	} else if !exists {
+		return nil
 	}
 
 	if err := d.api.ContainerStop(ctx, service.ID, nil); err != nil {

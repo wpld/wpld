@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"text/template"
+	"time"
 
 	"github.com/spf13/afero"
 
@@ -19,7 +20,7 @@ var proxyConf string
 
 func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
-		nginx := entities.Service{
+		proxy := entities.Service{
 			ID:      "wpld__reverse_proxy",
 			Network: "host",
 			Spec: entities.Specification{
@@ -27,7 +28,7 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			},
 		}
 
-		if err := api.StopContainer(ctx, nginx); err != nil {
+		if err := api.StopContainer(ctx, proxy); err != nil {
 			return err
 		}
 
@@ -56,11 +57,22 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			return err
 		}
 
-		nginx.Spec.Volumes = []string{
+		proxy.Spec.Volumes = []string{
 			fmt.Sprintf("%s:/etc/nginx/conf.d/default.conf:cached", file.Name()),
 		}
 
-		if err := api.StartContainer(ctx, nginx, false); err != nil {
+		for i := 0; i < 60; i++ {
+			exists, err := api.ContainerExists(ctx, proxy)
+			if err != nil {
+				return err
+			} else if !exists {
+				break
+			} else {
+				time.Sleep(time.Second)
+			}
+		}
+
+		if err := api.StartContainer(ctx, proxy, false); err != nil {
 			return err
 		}
 
