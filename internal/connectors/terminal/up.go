@@ -18,6 +18,11 @@ var upCmd = &cobra.Command{
 		"start",
 	},
 	RunE: func(c *cobra.Command, args []string) error {
+		pull, err := c.Flags().GetBool("pull")
+		if err != nil {
+			return err
+		}
+
 		api, err := docker.NewDocker()
 		if err != nil {
 			return err
@@ -27,7 +32,7 @@ var upCmd = &cobra.Command{
 
 		pipeline := pipelines.NewPipeline(
 			tasks.ProjectUnmarshalPipe(fs),
-			tasks.StartContainersPipe(api, false), // TODO: replace "false" with the "--pull" flag value
+			tasks.StartContainersPipe(api, pull),
 			tasks.ReloadProxyPipe(api, fs),
 		)
 
@@ -37,4 +42,6 @@ var upCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(upCmd)
+
+	upCmd.Flags().BoolP("pull", "p", false, "force pulling images before starting containers")
 }
