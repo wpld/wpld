@@ -6,12 +6,11 @@ import (
 	_ "embed"
 	"fmt"
 	"text/template"
-	"time"
 
 	"github.com/spf13/afero"
 
 	"wpld/internal/connectors/docker"
-	"wpld/internal/entities"
+	"wpld/internal/entities/services"
 	"wpld/internal/pipelines"
 )
 
@@ -20,18 +19,6 @@ var proxyConf string
 
 func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
-		proxy := entities.Service{
-			ID:      "wpld__reverse_proxy",
-			Network: "host",
-			Spec: entities.Specification{
-				Image: "nginx:alpine",
-			},
-		}
-
-		if err := api.StopContainer(ctx, proxy); err != nil {
-			return err
-		}
-
 		tmpdir := afero.GetTempDir(fs, "wpld")
 		file, err := afero.TempFile(fs, tmpdir, "reverse-proxy.*.conf")
 		if err != nil {
@@ -57,22 +44,12 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			return err
 		}
 
+		proxy := services.NewProxyService()
 		proxy.Spec.Volumes = []string{
 			fmt.Sprintf("%s:/etc/nginx/conf.d/default.conf:cached", file.Name()),
 		}
 
-		for i := 0; i < 60; i++ {
-			exists, err := api.ContainerExists(ctx, proxy)
-			if err != nil {
-				return err
-			} else if !exists {
-				break
-			} else {
-				time.Sleep(time.Second)
-			}
-		}
-
-		if err := api.StartContainer(ctx, proxy, false); err != nil {
+		if err := api.RestartContainer(ctx, proxy); err != nil {
 			return err
 		}
 

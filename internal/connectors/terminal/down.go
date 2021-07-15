@@ -17,6 +17,11 @@ var downCmd = &cobra.Command{
 		"stop",
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		all, err := cmd.Flags().GetBool("all")
+		if err != nil {
+			return err
+		}
+
 		api, err := docker.NewDocker()
 		if err != nil {
 			return err
@@ -24,11 +29,19 @@ var downCmd = &cobra.Command{
 
 		fs := afero.NewOsFs()
 
-		pipeline := pipelines.NewPipeline(
-			tasks.ProjectUnmarshalPipe(fs),
-			tasks.StopContainersPipe(api),
-			tasks.ReloadProxyPipe(api, fs),
-		)
+		var pipeline pipelines.Pipeline
+
+		if all {
+			pipeline = pipelines.NewPipeline(
+				tasks.StopAllContainersPipe(api),
+			)
+		} else {
+			pipeline = pipelines.NewPipeline(
+				tasks.ProjectUnmarshalPipe(fs),
+				tasks.StopContainersPipe(api),
+				tasks.ReloadProxyPipe(api, fs),
+			)
+		}
 
 		return pipeline.Run(cmd.Context())
 	},
@@ -36,4 +49,6 @@ var downCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(downCmd)
+
+	downCmd.Flags().BoolP("all", "a", false, "stop all running projects")
 }

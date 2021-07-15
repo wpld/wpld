@@ -30,3 +30,13 @@ func StopContainersPipe(api docker.Docker) pipelines.Pipe {
 		return next(ctx)
 	}
 }
+
+func StopAllContainersPipe(api docker.Docker) pipelines.Pipe {
+	return func(ctx context.Context, next pipelines.NextPipe) error {
+		if err := api.StopAllContainers(ctx); err != nil {
+			return err
+		}
+
+		return next(ctx)
+	}
+}

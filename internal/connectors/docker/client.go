@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -17,6 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"wpld/internal/entities"
+	"wpld/internal/misc"
 )
 
 type Docker struct {
@@ -121,13 +123,15 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		Image:       service.Spec.Image,
 		WorkingDir:  service.Spec.WorkingDir,
 		Entrypoint:  service.Spec.Entrypoint,
+		Labels: map[string]string{
+			"wpld": misc.VERSION,
+		},
 	}
 
 	if service.Project != "" {
-		config.Labels = map[string]string{
-			"wpld.project": service.Project,
-			"wpld.domains": strings.Join(service.Domains, " "),
-		}
+		config.Labels["wpld.project"] = service.Project
+		config.Labels["wpld.service"] = service.Spec.Name
+		config.Labels["wpld.domains"] = strings.Join(service.Domains, " ")
 	}
 
 	envLen := len(service.Spec.Env)
@@ -223,6 +227,57 @@ func (d Docker) StopContainer(ctx context.Context, service entities.Service) err
 
 	if service.Spec.Name != "" {
 		logrus.Infof("%s stopped", service.Spec.Name)
+	}
+
+	return nil
+}
+
+func (d Docker) StopAllContainers(ctx context.Context) error {
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("label", "wpld")
+
+	args := types.ContainerListOptions{
+		Filters: filterArgs,
+	}
+
+	list, err := d.api.ContainerList(ctx, args)
+	if err != nil {
+		return err
+	}
+
+	for _, c := range list {
+		if err := d.api.ContainerStop(ctx, c.ID, nil); err != nil {
+			return err
+		}
+
+		project, hasProjectLabel := c.Labels["wpld.project"]
+		service, hasServiceLabel := c.Labels["wpld.service"]
+		if hasProjectLabel && hasServiceLabel {
+			logrus.Infof("{%s} %s stopped", project, service)
+		}
+	}
+
+	return nil
+}
+
+func (d Docker) RestartContainer(ctx context.Context, service entities.Service) error {
+	if err := d.StopContainer(ctx, service); err != nil {
+		return err
+	}
+
+	for i := 0; i < 60; i++ {
+		exists, err := d.ContainerExists(ctx, service)
+		if err != nil {
+			return err
+		} else if !exists {
+			break
+		} else {
+			time.Sleep(time.Second)
+		}
+	}
+
+	if err := d.StartContainer(ctx, service, false); err != nil {
+		return err
 	}
 
 	return nil

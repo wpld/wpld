@@ -49,7 +49,7 @@ func (p Project) GetServices() ([]Service, error) {
 				service := Service{
 					ID:      containerID,
 					Network: p.GetNetworkName(),
-					Project: p.ID,
+					Project: p.Name,
 					Spec:    p.Services[id],
 					Domains: p.Domains,
 					Aliases: []string{
