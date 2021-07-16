@@ -11,6 +11,7 @@ import (
 	"github.com/gosimple/slug"
 
 	"wpld/internal/entities"
+	"wpld/internal/entities/specs"
 	"wpld/internal/pipelines"
 )
 
@@ -20,6 +21,7 @@ func NewProjectPromptPipe() pipelines.Pipe {
 			Name    string
 			Domains []string
 			PHP     string `survey:"php"`
+			Cache   string
 		}
 
 		questions := []*survey.Question{
@@ -52,6 +54,17 @@ func NewProjectPromptPipe() pipelines.Pipe {
 					},
 				},
 			},
+			{
+				Name: "cache",
+				Prompt: &survey.Select{
+					Message: "Object caching system:",
+					Options: []string{
+						"Memcached",
+						"Redis",
+						"(none)",
+					},
+				},
+			},
 		}
 
 		err := survey.Ask(questions, &answers)
@@ -68,62 +81,42 @@ func NewProjectPromptPipe() pipelines.Pipe {
 		wpVolume := fmt.Sprintf("%s__wp", projectSlug)
 		dbVolume := fmt.Sprintf("%s__db", projectSlug)
 
-		wp := entities.Specification{
-			Name:  "WordPress",
-			Image: fmt.Sprintf("wordpress:5-php%s-fpm-alpine", answers.PHP),
-			Volumes: []string{
-				fmt.Sprintf("%s:/var/www/html", wpVolume),
-			},
-			Env: map[string]string{
-				"WORDPRESS_DB_HOST":     "db",
-				"WORDPRESS_DB_USER":     "wordpress",
-				"WORDPRESS_DB_PASSWORD": "password",
-				"WORDPRESS_DB_NAME":     projectSlug,
-			},
+		volumes := []string{
+			wpVolume,
+			dbVolume,
 		}
 
-		db := entities.Specification{
-			Name:  "Database",
-			Image: "mariadb:latest",
-			Volumes: []string{
-				fmt.Sprintf("%s:/var/lib/mysql", dbVolume),
-			},
-			Env: map[string]string{
-				"MYSQL_ROOT_PASSWORD": "password",
-				"MYSQL_DATABASE":      projectSlug,
-				"MYSQL_USER":          "wordpress",
-				"MYSQL_PASSWORD":      "password",
-			},
+		services := map[string]entities.Specification{
+			"wp":    specs.NewWordPressSpec(projectSlug, wpVolume, answers.PHP),
+			"db":    specs.NewDatabaseSpec(projectSlug, dbVolume),
+			"nginx": specs.NewNginxSpec(),
 		}
 
-		nginx := entities.Specification{
-			Name:    "Nginx",
-			Image:   "nginx:alpine",
-			Volumes: []string{},
-			VolumesFrom: []string{
-				"wp",
-			},
-			DependsOn: []string{
-				"wp",
-			},
+		if answers.Cache == "Memcached" {
+			services["memcache"] = specs.NewMemcachedSpec()
+			if extra, ok := services["wp"].Env["WORDPRESS_CONFIG_EXTRA"]; ok {
+				services["wp"].Env["WORDPRESS_CONFIG_EXTRA"] = extra + "\n$memcached_servers = array( 'memcache:11211' );"
+			} else {
+				services["wp"].Env["WORDPRESS_CONFIG_EXTRA"] = "$memcached_servers = array( 'memcache:11211' );"
+			}
+		} else if answers.Cache == "Redis" {
+			services["redis"] = specs.NewRedisSpec()
+			if extra, ok := services["wp"].Env["WORDPRESS_CONFIG_EXTRA"]; ok {
+				services["wp"].Env["WORDPRESS_CONFIG_EXTRA"] = extra + "\ndefine( 'WP_REDIS_HOST', 'redis' );"
+			} else {
+				services["wp"].Env["WORDPRESS_CONFIG_EXTRA"] = "define( 'WP_REDIS_HOST', 'redis' );"
+			}
 		}
 
 		return next(context.WithValue(
 			ctx,
 			"project",
 			entities.Project{
-				ID:      projectSlug,
-				Name:    answers.Name,
-				Domains: answers.Domains,
-				Volumes: []string{
-					wpVolume,
-					dbVolume,
-				},
-				Services: map[string]entities.Specification{
-					"wp":    wp,
-					"db":    db,
-					"nginx": nginx,
-				},
+				ID:       projectSlug,
+				Name:     answers.Name,
+				Domains:  answers.Domains,
+				Volumes:  volumes,
+				Services: services,
 			},
 		))
 	}
