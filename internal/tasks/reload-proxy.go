@@ -19,6 +19,20 @@ var proxyConf string
 
 func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
+		domains, err := api.FindHTTPContainers(ctx)
+		if err != nil {
+			return err
+		}
+
+		proxy := services.NewProxyService()
+		if len(domains) == 0 {
+			if err := api.StopContainer(ctx, proxy); err != nil {
+				return err
+			} else {
+				return next(ctx)
+			}
+		}
+
 		tmpdir := afero.GetTempDir(fs, "wpld")
 		file, err := afero.TempFile(fs, tmpdir, "reverse-proxy.*.conf")
 		if err != nil {
@@ -26,11 +40,6 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 		}
 
 		tmpl, err := template.New("proxy").Parse(proxyConf)
-		if err != nil {
-			return err
-		}
-
-		domains, err := api.FindHTTPContainers(ctx)
 		if err != nil {
 			return err
 		}
@@ -44,7 +53,6 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			return err
 		}
 
-		proxy := services.NewProxyService()
 		proxy.Spec.Volumes = []string{
 			fmt.Sprintf("%s:/etc/nginx/conf.d/default.conf:cached", file.Name()),
 		}
