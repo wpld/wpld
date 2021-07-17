@@ -47,8 +47,10 @@ func ProjectNginxConfigPipe(fs afero.Fs) pipelines.Pipe {
 			)
 
 			project.Services["nginx"] = nginx
+
+			return next(context.WithValue(ctx, "project", project))
 		}
 
-		return next(context.WithValue(ctx, "project", project))
+		return next(ctx)
 	}
 }
