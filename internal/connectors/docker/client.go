@@ -118,11 +118,14 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	}
 
 	config := &container.Config{
-		Cmd:         service.Spec.Cmd,
-		Healthcheck: nil,
-		Image:       service.Spec.Image,
-		WorkingDir:  service.Spec.WorkingDir,
-		Entrypoint:  service.Spec.Entrypoint,
+		Cmd:          service.Spec.Cmd,
+		Healthcheck:  nil,
+		Image:        service.Spec.Image,
+		WorkingDir:   service.Spec.WorkingDir,
+		Entrypoint:   service.Spec.Entrypoint,
+		AttachStderr: service.AttachStderr,
+		AttachStdin:  service.AttachStdin,
+		AttachStdout: service.AttachStdout,
 		Labels: map[string]string{
 			"wpld": misc.VERSION,
 		},
@@ -278,6 +281,23 @@ func (d Docker) RestartContainer(ctx context.Context, service entities.Service) 
 
 	if err := d.StartContainer(ctx, service, false); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (d Docker) RunContainer(ctx context.Context, service entities.Service) error {
+	if err := d.StartContainer(ctx, service, false); err != nil {
+		return err
+	}
+
+	statusCh, errCh := d.api.ContainerWait(ctx, service.ID, container.WaitConditionNotRunning)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			return err
+		}
+	case <-statusCh:
 	}
 
 	return nil
