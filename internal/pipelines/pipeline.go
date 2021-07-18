@@ -19,8 +19,12 @@ func (p Pipeline) Run(ctx context.Context) error {
 		return nil
 	}
 
-	return p.pipes[0](ctx, func(nextCtx context.Context) error {
-		nextPipes := NewPipeline(p.pipes[1:]...)
-		return nextPipes.Run(nextCtx)
-	})
+	select {
+	case <-ctx.Done():
+		return nil
+	default:
+		return p.pipes[0](ctx, func(nextCtx context.Context) error {
+			return NewPipeline(p.pipes[1:]...).Run(nextCtx)
+		})
+	}
 }

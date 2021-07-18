@@ -1,6 +1,8 @@
 package terminal
 
 import (
+	"context"
+
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
@@ -13,8 +15,8 @@ var rootCmd = &cobra.Command{
 	Version: misc.VERSION,
 }
 
-func Execute() {
-	err := rootCmd.Execute()
+func Execute(ctx context.Context) {
+	err := rootCmd.ExecuteContext(ctx)
 	if err != nil {
 		logrus.Fatal(err)
 	}
