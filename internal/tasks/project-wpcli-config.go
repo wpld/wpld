@@ -15,7 +15,7 @@ import (
 //go:embed embeds/wordpress/wp-cli.yml
 var wpcliConfig string
 
-func NewProjectWPCLIConfigPipe(fs afero.Fs) pipelines.Pipe {
+func ProjectWPCLIConfigPipe(fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {

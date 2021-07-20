@@ -24,7 +24,7 @@ var wpCmd = &cobra.Command{
 
 		pipeline := pipelines.NewPipeline(
 			tasks.ProjectUnmarshalPipe(fs),
-			tasks.NewWPCLIPipe(api, args),
+			tasks.WPCLIRunPipe(api, args),
 		)
 
 		return pipeline.Run(cmd.Context())

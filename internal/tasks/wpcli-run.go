@@ -12,7 +12,7 @@ import (
 	"wpld/internal/pipelines"
 )
 
-func NewWPCLIPipe(api docker.Docker, args []string) pipelines.Pipe {
+func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {

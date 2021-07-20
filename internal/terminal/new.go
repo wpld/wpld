@@ -20,7 +20,7 @@ var newCmd = &cobra.Command{
 			tasks.NewProjectPromptPipe(),
 			tasks.ProjectStructurePipe(fs),
 			tasks.ProjectNginxConfigPipe(fs),
-			tasks.NewProjectWPCLIConfigPipe(fs),
+			tasks.ProjectWPCLIConfigPipe(fs),
 			tasks.ProjectMarshalPipe(fs),
 		)
 
