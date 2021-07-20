@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/signal"
 
-	"wpld/internal/connectors/terminal"
+	"wpld/internal/terminal"
 )
 
 func main() {

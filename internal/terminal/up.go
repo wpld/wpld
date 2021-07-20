@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 
-	"wpld/internal/connectors/docker"
+	"wpld/internal/docker"
 	"wpld/internal/pipelines"
 	"wpld/internal/tasks"
 )

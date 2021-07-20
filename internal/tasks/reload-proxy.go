@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/afero"
 
-	"wpld/internal/connectors/docker"
+	"wpld/internal/docker"
 	"wpld/internal/entities/services"
 	"wpld/internal/pipelines"
 )

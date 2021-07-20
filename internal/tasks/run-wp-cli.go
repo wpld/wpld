@@ -7,7 +7,7 @@ import (
 
 	"github.com/mattn/go-isatty"
 
-	"wpld/internal/connectors/docker"
+	"wpld/internal/docker"
 	"wpld/internal/entities"
 	"wpld/internal/pipelines"
 )

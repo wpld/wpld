@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"wpld/internal/connectors/docker"
+	"wpld/internal/docker"
 	"wpld/internal/entities"
 	"wpld/internal/pipelines"
 )
