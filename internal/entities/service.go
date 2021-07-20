@@ -10,4 +10,5 @@ type Service struct {
 	AttachStdout bool
 	AttachStdin  bool
 	AttachStderr bool
+	Tty          bool
 }

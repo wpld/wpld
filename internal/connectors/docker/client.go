@@ -126,6 +126,8 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		AttachStderr: service.AttachStderr,
 		AttachStdin:  service.AttachStdin,
 		AttachStdout: service.AttachStdout,
+		OpenStdin:    service.AttachStdin,
+		Tty:          service.Tty,
 		Labels: map[string]string{
 			"wpld": misc.VERSION,
 		},
@@ -290,6 +292,23 @@ func (d Docker) RunContainer(ctx context.Context, service entities.Service) erro
 	if err := d.StartContainer(ctx, service, false); err != nil {
 		return err
 	}
+
+	attachOptions := types.ContainerAttachOptions{
+		Stream: true,
+		Stdin:  service.AttachStdin,
+		Stdout: service.AttachStdout,
+		Stderr: service.AttachStderr,
+	}
+
+	attach, err := d.api.ContainerAttach(ctx, service.ID, attachOptions)
+	if err != nil {
+		return err
+	}
+
+	// @see: https://github.com/docker/cli/blob/master/cli/command/container/hijack.go
+
+	go io.Copy(os.Stdout, attach.Reader)
+	go io.Copy(attach.Conn, os.Stdin)
 
 	statusCh, errCh := d.api.ContainerWait(ctx, service.ID, container.WaitConditionNotRunning)
 	select {
