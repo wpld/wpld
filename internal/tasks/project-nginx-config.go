@@ -3,7 +3,6 @@ package tasks
 import (
 	"context"
 	_ "embed"
-	"errors"
 	"fmt"
 	"path/filepath"
 
@@ -20,7 +19,7 @@ func ProjectNginxConfigPipe(fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {
-			return errors.New("project is not found")
+			return ProjectNotFoundErr
 		}
 
 		if nginx, ok := project.Services["nginx"]; ok {

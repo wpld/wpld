@@ -322,6 +322,26 @@ func (d Docker) RunContainer(ctx context.Context, service entities.Service) erro
 	return nil
 }
 
+func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tail string, skipStdout, skipStderr bool) error {
+	params := types.ContainerLogsOptions{
+		ShowStdout: !skipStdout,
+		ShowStderr: !skipStderr,
+		Tail:       tail,
+	}
+
+	resp, err := d.api.ContainerLogs(ctx, service.ID, params)
+	if err != nil {
+		return err
+	}
+
+	_, err = io.Copy(os.Stdout, resp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, error) {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("label", "wpld.project")

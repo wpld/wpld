@@ -16,7 +16,7 @@ func NewWPCLIPipe(api docker.Docker, args []string) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {
-			return errors.New("project is not found")
+			return ProjectNotFoundErr
 		}
 
 		wp, ok := project.Services["wp"]

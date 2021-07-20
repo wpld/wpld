@@ -2,7 +2,6 @@ package tasks
 
 import (
 	"context"
-	"errors"
 
 	"wpld/internal/docker"
 	"wpld/internal/entities"
@@ -13,7 +12,7 @@ func StopContainersPipe(api docker.Docker) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {
-			return errors.New("project not found")
+			return ProjectNotFoundErr
 		}
 
 		services, err := project.GetServices()

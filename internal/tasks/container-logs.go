@@ -2,27 +2,18 @@ package tasks
 
 import (
 	"context"
+	"errors"
 
 	"wpld/internal/docker"
 	"wpld/internal/entities"
 	"wpld/internal/pipelines"
 )
 
-func StartContainersPipe(api docker.Docker, pull bool) pipelines.Pipe {
+func ContainerLogs(api docker.Docker, serviceID, tail string, skipStdout, skipStderr bool) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {
 			return ProjectNotFoundErr
-		}
-
-		if err := api.EnsureNetworkExists(ctx, project.GetNetworkName()); err != nil {
-			return err
-		}
-
-		for _, volume := range project.Volumes {
-			if err := api.EnsureVolumeExists(ctx, volume); err != nil {
-				return err
-			}
 		}
 
 		services, err := project.GetServices()
@@ -30,10 +21,25 @@ func StartContainersPipe(api docker.Docker, pull bool) pipelines.Pipe {
 			return err
 		}
 
+		id := project.GetContainerIDForService(serviceID)
+		found := false
+
 		for _, service := range services {
-			if err := api.StartContainer(ctx, service, pull); err != nil {
+			if service.ID != id {
+				continue
+			} else {
+				found = true
+			}
+
+			if err := api.ContainerLogs(ctx, service, tail, skipStdout, skipStderr); err != nil {
 				return err
 			}
+
+			break
+		}
+
+		if !found {
+			return errors.New("service not found")
 		}
 
 		return next(ctx)
