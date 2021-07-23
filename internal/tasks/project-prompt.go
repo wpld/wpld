@@ -15,7 +15,7 @@ import (
 	"wpld/internal/pipelines"
 )
 
-func NewProjectPromptPipe() pipelines.Pipe {
+func ProjectPromptPipe() pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		var answers struct {
 			Name    string
