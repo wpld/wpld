@@ -2,10 +2,12 @@ package tasks
 
 import (
 	"context"
+	"fmt"
 
 	"wpld/internal/docker"
 	"wpld/internal/entities"
 	"wpld/internal/pipelines"
+	"wpld/internal/stdout"
 )
 
 func StopContainersPipe(api docker.Docker) pipelines.Pipe {
@@ -21,8 +23,21 @@ func StopContainersPipe(api docker.Docker) pipelines.Pipe {
 		}
 
 		for _, service := range services {
-			if err := api.StopContainer(ctx, service); err != nil {
+			if service.Spec.Name != "" {
+				msg := fmt.Sprintf("Stopping %s...", service.Spec.Name)
+				stdout.StartSpinner(msg)
+			}
+
+			err := api.StopContainer(ctx, service)
+			stdout.StopSpinner()
+
+			if err != nil {
 				return err
+			}
+
+			if service.Spec.Name != "" {
+				msg := fmt.Sprintf("%s stopped", service.Spec.Name)
+				stdout.Success(msg)
 			}
 		}
 

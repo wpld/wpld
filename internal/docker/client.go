@@ -211,10 +211,6 @@ func (d Docker) StartContainer(ctx context.Context, service entities.Service, pu
 		return err
 	}
 
-	if service.Spec.Name != "" {
-		logrus.Infof("%s started", service.Spec.Name)
-	}
-
 	return nil
 }
 
@@ -228,10 +224,6 @@ func (d Docker) StopContainer(ctx context.Context, service entities.Service) err
 
 	if err := d.api.ContainerStop(ctx, service.ID, nil); err != nil {
 		return err
-	}
-
-	if service.Spec.Name != "" {
-		logrus.Infof("%s stopped", service.Spec.Name)
 	}
 
 	return nil

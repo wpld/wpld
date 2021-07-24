@@ -5,10 +5,12 @@ go 1.16
 require (
 	github.com/AlecAivazis/survey/v2 v2.2.15
 	github.com/Microsoft/go-winio v0.5.0 // indirect
+	github.com/briandowns/spinner v1.13.0
 	github.com/containerd/containerd v1.5.4 // indirect
 	github.com/deckarep/golang-set v1.7.1
 	github.com/docker/docker v20.10.7+incompatible
 	github.com/docker/go-connections v0.4.0
+	github.com/fatih/color v1.12.0
 	github.com/gosimple/slug v1.9.0
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.13

@@ -3,13 +3,11 @@ package tasks
 import (
 	"context"
 	"errors"
-	"os"
-
-	"github.com/mattn/go-isatty"
 
 	"wpld/internal/docker"
 	"wpld/internal/entities"
 	"wpld/internal/pipelines"
+	"wpld/internal/stdout"
 )
 
 func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
@@ -24,14 +22,6 @@ func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 			return errors.New("wp service is not defined")
 		}
 
-		tty := false
-		stdout := os.Stdout.Fd()
-		if isatty.IsTerminal(stdout) {
-			tty = true
-		} else if isatty.IsCygwinTerminal(stdout) {
-			tty = true
-		}
-
 		wpcli := entities.Service{
 			ID:           project.GetContainerIDForService("wp-cli"),
 			Network:      project.GetNetworkName(),
@@ -39,7 +29,7 @@ func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 			AttachStdout: true,
 			AttachStdin:  true,
 			AttachStderr: true,
-			Tty:          tty,
+			Tty:          stdout.IsTerm(),
 			Spec: entities.Specification{
 				Image: "wordpress:cli",
 				Cmd:   append([]string{"wp"}, args...),
