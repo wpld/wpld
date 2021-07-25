@@ -12,11 +12,10 @@ require (
 	github.com/docker/go-connections v0.4.0
 	github.com/fatih/color v1.12.0
 	github.com/gosimple/slug v1.9.0
-	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.13
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
-	github.com/sirupsen/logrus v1.8.1
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/afero v1.6.0
 	github.com/spf13/cobra v1.2.1
 	golang.org/x/net v0.0.0-20210716203947-853a461950ff // indirect

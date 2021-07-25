@@ -14,6 +14,7 @@ func init() {
 		spinner.CharSets[14],
 		100*time.Millisecond,
 		spinner.WithWriter(os.Stderr),
+		spinner.WithHiddenCursor(true),
 	)
 }
 

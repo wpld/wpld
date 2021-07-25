@@ -15,10 +15,10 @@ import (
 	"github.com/docker/docker/api/types/volume"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/sirupsen/logrus"
 
 	"wpld/internal/entities"
 	"wpld/internal/misc"
+	"wpld/internal/stdout"
 )
 
 type Docker struct {
@@ -185,7 +185,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	}
 
 	for _, warn := range resp.Warnings {
-		logrus.Warn(warn)
+		stdout.Warn(warn)
 	}
 
 	return nil
@@ -224,34 +224,6 @@ func (d Docker) StopContainer(ctx context.Context, service entities.Service) err
 
 	if err := d.api.ContainerStop(ctx, service.ID, nil); err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func (d Docker) StopAllContainers(ctx context.Context) error {
-	filterArgs := filters.NewArgs()
-	filterArgs.Add("label", "wpld")
-
-	args := types.ContainerListOptions{
-		Filters: filterArgs,
-	}
-
-	list, err := d.api.ContainerList(ctx, args)
-	if err != nil {
-		return err
-	}
-
-	for _, c := range list {
-		if err := d.api.ContainerStop(ctx, c.ID, nil); err != nil {
-			return err
-		}
-
-		project, hasProjectLabel := c.Labels["wpld.project"]
-		service, hasServiceLabel := c.Labels["wpld.service"]
-		if hasProjectLabel && hasServiceLabel {
-			logrus.Infof("{%s} %s stopped", project, service)
-		}
 	}
 
 	return nil
@@ -332,6 +304,18 @@ func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tai
 	}
 
 	return nil
+}
+
+func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container, error) {
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("label", "wpld")
+
+	return d.api.ContainerList(
+		ctx,
+		types.ContainerListOptions{
+			Filters: filterArgs,
+		},
+	)
 }
 
 func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, error) {

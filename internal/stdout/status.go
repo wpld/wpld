@@ -21,3 +21,11 @@ func Error(msg string) {
 		fmt.Print("× ", msg, "\n")
 	}
 }
+
+func Warn(msg string) {
+	if IsTerm() {
+		fmt.Print(color.YellowString("⚠"), " ", msg, "\n")
+	} else {
+		fmt.Print("‼ ", msg, "\n")
+	}
+}

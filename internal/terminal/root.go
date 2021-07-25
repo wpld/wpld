@@ -2,11 +2,12 @@ package terminal
 
 import (
 	"context"
+	"os"
 
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 
 	"wpld/internal/misc"
+	"wpld/internal/stdout"
 )
 
 var rootCmd = &cobra.Command{
@@ -18,6 +19,7 @@ var rootCmd = &cobra.Command{
 func Execute(ctx context.Context) {
 	err := rootCmd.ExecuteContext(ctx)
 	if err != nil {
-		logrus.Fatal(err)
+		stdout.Error(err.Error())
+		os.Exit(1)
 	}
 }
