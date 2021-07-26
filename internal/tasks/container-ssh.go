@@ -8,14 +8,14 @@ import (
 	"wpld/internal/pipelines"
 )
 
-func ContainerLogs(api docker.Docker, tail string, skipStdout, skipStderr bool) pipelines.Pipe {
+func ContainerSSHPipe(api docker.Docker) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		service, ok := ctx.Value("service").(entities.Service)
 		if !ok {
 			return ServiceNotFoundErr
 		}
 
-		if err := api.ContainerLogs(ctx, service, tail, skipStdout, skipStderr); err != nil {
+		if err := api.ContainerSSH(ctx, service); err != nil {
 			return err
 		}
 

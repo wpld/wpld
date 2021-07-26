@@ -306,6 +306,10 @@ func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tai
 	return nil
 }
 
+func (d Docker) ContainerSSH(ctx context.Context, service entities.Service) error {
+	return nil
+}
+
 func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container, error) {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("label", "wpld")

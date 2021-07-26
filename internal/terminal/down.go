@@ -13,6 +13,7 @@ var downCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Use:           "down",
+	Short:         "down short desc",
 	Aliases: []string{
 		"stop",
 	},

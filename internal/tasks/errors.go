@@ -4,4 +4,7 @@ import (
 	"errors"
 )
 
-var ProjectNotFoundErr = errors.New("project not found")
+var (
+	ProjectNotFoundErr = errors.New("project not found")
+	ServiceNotFoundErr = errors.New("service not found")
+)

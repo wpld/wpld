@@ -39,9 +39,15 @@ var logsCmd = &cobra.Command{
 
 		fs := afero.NewOsFs()
 
+		service := "wp"
+		if len(args) > 0 {
+			service = args[0]
+		}
+
 		pipeline := pipelines.NewPipeline(
 			tasks.ProjectUnmarshalPipe(fs),
-			tasks.ContainerLogs(api, args[0], tail, skipStdout, skipStderr),
+			tasks.ServiceFindPipe(service),
+			tasks.ContainerLogs(api, tail, skipStdout, skipStderr),
 		)
 
 		return pipeline.Run(cmd.Context())
