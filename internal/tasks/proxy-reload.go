@@ -26,7 +26,7 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 
 		proxy := services.NewProxyService()
 		if len(domains) == 0 {
-			if err := api.StopContainer(ctx, proxy); err != nil {
+			if err := api.ContainerStop(ctx, proxy); err != nil {
 				return err
 			} else {
 				return next(ctx)
@@ -57,7 +57,7 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			fmt.Sprintf("%s:/etc/nginx/conf.d/default.conf:cached", file.Name()),
 		}
 
-		if err := api.RestartContainer(ctx, proxy); err != nil {
+		if err := api.ContainerRestart(ctx, proxy); err != nil {
 			return err
 		}
 

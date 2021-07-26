@@ -13,7 +13,7 @@ var logsCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	Use:           "logs [service]",
-	Short:         "short logs command",
+	Short:         "short logs desc",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 
@@ -47,7 +47,7 @@ var logsCmd = &cobra.Command{
 		pipeline := pipelines.NewPipeline(
 			tasks.ProjectUnmarshalPipe(fs),
 			tasks.ServiceFindPipe(service),
-			tasks.ContainerLogs(api, tail, skipStdout, skipStderr),
+			tasks.ContainerLogsPipe(api, tail, skipStdout, skipStderr),
 		)
 
 		return pipeline.Run(cmd.Context())

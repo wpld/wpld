@@ -8,7 +8,7 @@ import (
 	"wpld/internal/pipelines"
 )
 
-func ContainerLogs(api docker.Docker, tail string, skipStdout, skipStderr bool) pipelines.Pipe {
+func ContainerLogsPipe(api docker.Docker, tail string, skipStdout, skipStderr bool) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		service, ok := ctx.Value("service").(entities.Service)
 		if !ok {

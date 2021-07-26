@@ -202,7 +202,7 @@ func (d Docker) ContainerExists(ctx context.Context, service entities.Service) (
 	return false, nil
 }
 
-func (d Docker) StartContainer(ctx context.Context, service entities.Service, pull bool) error {
+func (d Docker) ContainerStart(ctx context.Context, service entities.Service, pull bool) error {
 	if err := d.EnsureContainerExists(ctx, service, pull); err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func (d Docker) StartContainer(ctx context.Context, service entities.Service, pu
 	return nil
 }
 
-func (d Docker) StopContainer(ctx context.Context, service entities.Service) error {
+func (d Docker) ContainerStop(ctx context.Context, service entities.Service) error {
 	exists, err := d.ContainerExists(ctx, service)
 	if err != nil {
 		return err
@@ -229,8 +229,8 @@ func (d Docker) StopContainer(ctx context.Context, service entities.Service) err
 	return nil
 }
 
-func (d Docker) RestartContainer(ctx context.Context, service entities.Service) error {
-	if err := d.StopContainer(ctx, service); err != nil {
+func (d Docker) ContainerRestart(ctx context.Context, service entities.Service) error {
+	if err := d.ContainerStop(ctx, service); err != nil {
 		return err
 	}
 
@@ -245,15 +245,15 @@ func (d Docker) RestartContainer(ctx context.Context, service entities.Service) 
 		}
 	}
 
-	if err := d.StartContainer(ctx, service, false); err != nil {
+	if err := d.ContainerStart(ctx, service, false); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (d Docker) RunContainer(ctx context.Context, service entities.Service) error {
-	if err := d.StartContainer(ctx, service, false); err != nil {
+func (d Docker) ContainerRun(ctx context.Context, service entities.Service) error {
+	if err := d.ContainerStart(ctx, service, false); err != nil {
 		return err
 	}
 

@@ -9,13 +9,14 @@ import (
 	"wpld/internal/tasks"
 )
 
-var downCmd = &cobra.Command{
+var stopCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
-	Use:           "down",
-	Short:         "down short desc",
+	Use:           "stop",
+	Short:         "stop short desc",
 	Aliases: []string{
-		"stop",
+		"down",
+		"halt",
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		all, err := cmd.Flags().GetBool("all")
@@ -34,12 +35,12 @@ var downCmd = &cobra.Command{
 
 		if all {
 			pipeline = pipelines.NewPipeline(
-				tasks.StopAllContainersPipe(api),
+				tasks.ContainersStopAllPipe(api),
 			)
 		} else {
 			pipeline = pipelines.NewPipeline(
 				tasks.ProjectUnmarshalPipe(fs),
-				tasks.StopContainersPipe(api),
+				tasks.ContainersStopPipe(api),
 				tasks.ReloadProxyPipe(api, fs),
 			)
 		}
@@ -49,7 +50,7 @@ var downCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(downCmd)
+	rootCmd.AddCommand(stopCmd)
 
-	downCmd.Flags().BoolP("all", "a", false, "stop all running projects")
+	stopCmd.Flags().BoolP("all", "a", false, "stop all running projects")
 }

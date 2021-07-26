@@ -10,7 +10,7 @@ import (
 	"wpld/internal/stdout"
 )
 
-func StartContainersPipe(api docker.Docker, pull bool) pipelines.Pipe {
+func ContainersStartPipe(api docker.Docker, pull bool) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {
@@ -38,7 +38,7 @@ func StartContainersPipe(api docker.Docker, pull bool) pipelines.Pipe {
 				stdout.StartSpinner(msg)
 			}
 
-			err := api.StartContainer(ctx, service, pull)
+			err := api.ContainerStart(ctx, service, pull)
 			stdout.StopSpinner()
 
 			if err != nil {

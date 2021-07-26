@@ -40,7 +40,7 @@ func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 			},
 		}
 
-		if err := api.RunContainer(ctx, wpcli); err != nil {
+		if err := api.ContainerRun(ctx, wpcli); err != nil {
 			return err
 		}
 

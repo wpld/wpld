@@ -9,13 +9,13 @@ import (
 	"wpld/internal/tasks"
 )
 
-var upCmd = &cobra.Command{
+var startCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
-	Use:           "up",
-	Short:         "up short desc",
+	Use:           "start",
+	Short:         "start short desc",
 	Aliases: []string{
-		"start",
+		"up",
 	},
 	RunE: func(c *cobra.Command, args []string) error {
 		pull, err := c.Flags().GetBool("pull")
@@ -32,7 +32,7 @@ var upCmd = &cobra.Command{
 
 		pipeline := pipelines.NewPipeline(
 			tasks.ProjectUnmarshalPipe(fs),
-			tasks.StartContainersPipe(api, pull),
+			tasks.ContainersStartPipe(api, pull),
 			tasks.ReloadProxyPipe(api, fs),
 		)
 
@@ -41,7 +41,7 @@ var upCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(upCmd)
+	rootCmd.AddCommand(startCmd)
 
-	upCmd.Flags().BoolP("pull", "p", false, "force pulling images before starting containers")
+	startCmd.Flags().BoolP("pull", "p", false, "force pulling images before starting containers")
 }

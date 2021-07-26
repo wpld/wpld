@@ -10,7 +10,7 @@ import (
 	"wpld/internal/stdout"
 )
 
-func StopContainersPipe(api docker.Docker) pipelines.Pipe {
+func ContainersStopPipe(api docker.Docker) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		project, ok := ctx.Value("project").(entities.Project)
 		if !ok {
@@ -28,7 +28,7 @@ func StopContainersPipe(api docker.Docker) pipelines.Pipe {
 				stdout.StartSpinner(msg)
 			}
 
-			err := api.StopContainer(ctx, service)
+			err := api.ContainerStop(ctx, service)
 			stdout.StopSpinner()
 
 			if err != nil {
@@ -45,7 +45,7 @@ func StopContainersPipe(api docker.Docker) pipelines.Pipe {
 	}
 }
 
-func StopAllContainersPipe(api docker.Docker) pipelines.Pipe {
+func ContainersStopAllPipe(api docker.Docker) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		list, err := api.FindAllRunningContainers(ctx)
 		if err != nil {
@@ -61,7 +61,7 @@ func StopAllContainersPipe(api docker.Docker) pipelines.Pipe {
 				stdout.StartSpinner(msg)
 			}
 
-			err := api.StopContainer(ctx, entities.Service{ID: container.ID})
+			err := api.ContainerStop(ctx, entities.Service{ID: container.ID})
 			stdout.StopSpinner()
 
 			if err != nil {
