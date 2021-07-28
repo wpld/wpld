@@ -252,11 +252,7 @@ func (d Docker) ContainerRestart(ctx context.Context, service entities.Service) 
 	return nil
 }
 
-func (d Docker) ContainerRun(ctx context.Context, service entities.Service) error {
-	if err := d.ContainerStart(ctx, service, false); err != nil {
-		return err
-	}
-
+func (d Docker) ContainerAttach(ctx context.Context, service entities.Service) error {
 	attachOptions := types.ContainerAttachOptions{
 		Stream: true,
 		Stdin:  service.AttachStdin,
@@ -269,18 +265,15 @@ func (d Docker) ContainerRun(ctx context.Context, service entities.Service) erro
 		return err
 	}
 
-	// @see: https://github.com/docker/cli/blob/master/cli/command/container/hijack.go
+	// @see: https://github.com/docker/cli/blob/master/cli/command/container/attach.go
 
-	go io.Copy(os.Stdout, attach.Reader)
-	go io.Copy(attach.Conn, os.Stdin)
+	// TODO: add signals forwarding https://github.com/docker/cli/blob/master/cli/command/container/attach.go#L99-L102
 
-	statusCh, errCh := d.api.ContainerWait(ctx, service.ID, container.WaitConditionNotRunning)
-	select {
-	case err := <-errCh:
-		if err != nil {
-			return err
-		}
-	case <-statusCh:
+	// TODO: fix broken raw terminal state
+
+	hijackedStreamer := NewHijackedStreamer(attach, service.Tty)
+	if err := hijackedStreamer.Stream(ctx); err != nil {
+		return err
 	}
 
 	return nil
@@ -303,10 +296,6 @@ func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tai
 		return err
 	}
 
-	return nil
-}
-
-func (d Docker) ContainerSSH(ctx context.Context, service entities.Service) error {
 	return nil
 }
 

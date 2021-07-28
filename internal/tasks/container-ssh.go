@@ -15,7 +15,11 @@ func ContainerSSHPipe(api docker.Docker) pipelines.Pipe {
 			return ServiceNotFoundErr
 		}
 
-		if err := api.ContainerSSH(ctx, service); err != nil {
+		if err := api.ContainerStart(ctx, service, false); err != nil {
+			return err
+		}
+
+		if err := api.ContainerAttach(ctx, service); err != nil {
 			return err
 		}
 

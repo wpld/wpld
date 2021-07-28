@@ -21,7 +21,7 @@ func (p Pipeline) Run(ctx context.Context) error {
 
 	select {
 	case <-ctx.Done():
-		return nil
+		return ctx.Err()
 	default:
 		return p.pipes[0](ctx, func(nextCtx context.Context) error {
 			return NewPipeline(p.pipes[1:]...).Run(nextCtx)
