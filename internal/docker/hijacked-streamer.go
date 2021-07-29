@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"runtime"
 	"sync"
@@ -84,9 +83,10 @@ func (hs *HijackedStreamer) SetupInput() (func(), error) {
 		return func() {}, nil
 	}
 
-	if err := hs.SetRawTerminal(); err != nil {
-		return nil, fmt.Errorf("unable to set IO streams as raw terminal: %s", err)
-	}
+	// TODO: figure out why raw terminal doesn't restart state after setting it to raw
+	// if err := hs.SetRawTerminal(); err != nil {
+	// 	return nil, fmt.Errorf("unable to set IO streams as raw terminal: %s", err)
+	// }
 
 	var restoreOnce sync.Once
 	restore := func() {

@@ -16,7 +16,7 @@ func (cs CommonStream) FD() uintptr {
 	return cs.fd
 }
 
-func (cs CommonStream) SetRawTerminal() error {
+func (cs *CommonStream) SetRawTerminal() error {
 	if os.Getenv("NORAW") != "" || !cs.isTerm {
 		return nil
 	}
