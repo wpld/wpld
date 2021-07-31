@@ -14,7 +14,7 @@ import (
 	"wpld/internal/pipelines"
 )
 
-//go:embed embeds/nginx/reverse-proxy.conf
+//go:embed embeds/dnsmasq/dnsmasq.conf
 var proxyConf string
 
 func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
@@ -54,7 +54,7 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 		}
 
 		proxy.Spec.Volumes = []string{
-			fmt.Sprintf("%s:/etc/nginx/conf.d/default.conf:cached", file.Name()),
+			fmt.Sprintf("%s:/etc/dnsmasq.conf:cached", file.Name()),
 		}
 
 		if err := api.ContainerRestart(ctx, proxy); err != nil {

@@ -6,10 +6,12 @@ import (
 
 func NewProxyService() entities.Service {
 	return entities.Service{
-		ID:      "wpld__reverse_proxy",
-		Network: "host",
+		ID: "wpld__reverse_proxy",
 		Spec: entities.Specification{
-			Image: "nginx:alpine",
+			Image: "4km3/dnsmasq",
+			CapAdd: []string{
+				"NET_ADMIN",
+			},
 		},
 	}
 }
