@@ -4,9 +4,9 @@ import (
 	"wpld/internal/entities"
 )
 
-func NewProxyService() entities.Service {
+func NewDnsService() entities.Service {
 	return entities.Service{
-		ID: "wpld__reverse_proxy",
+		ID: "wpld__dnsmasq",
 		Spec: entities.Specification{
 			Image: "4km3/dnsmasq",
 			CapAdd: []string{

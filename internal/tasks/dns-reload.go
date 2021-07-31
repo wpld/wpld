@@ -17,16 +17,16 @@ import (
 //go:embed embeds/dnsmasq/dnsmasq.conf
 var proxyConf string
 
-func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
+func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		domains, err := api.FindHTTPContainers(ctx)
 		if err != nil {
 			return err
 		}
 
-		proxy := services.NewProxyService()
+		dns := services.NewDnsService()
 		if len(domains) == 0 {
-			if err := api.ContainerStop(ctx, proxy); err != nil {
+			if err := api.ContainerStop(ctx, dns); err != nil {
 				return err
 			} else {
 				return next(ctx)
@@ -53,11 +53,11 @@ func ReloadProxyPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			return err
 		}
 
-		proxy.Spec.Volumes = []string{
+		dns.Spec.Volumes = []string{
 			fmt.Sprintf("%s:/etc/dnsmasq.conf:cached", file.Name()),
 		}
 
-		if err := api.ContainerRestart(ctx, proxy); err != nil {
+		if err := api.ContainerRestart(ctx, dns); err != nil {
 			return err
 		}
 

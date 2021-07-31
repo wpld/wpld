@@ -26,7 +26,7 @@ var restartCmd = &cobra.Command{
 			tasks.ProjectUnmarshalPipe(fs),
 			tasks.ContainersStopPipe(api),
 			tasks.ContainersStartPipe(api, false),
-			tasks.ReloadProxyPipe(api, fs),
+			tasks.DNSReloadPipe(api, fs),
 		)
 
 		return pipeline.Run(cmd.Context())
