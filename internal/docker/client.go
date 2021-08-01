@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -133,10 +134,34 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		},
 	}
 
+	exposedPortsLen := len(service.Spec.ExposedPorts)
+	if exposedPortsLen > 0 {
+		config.ExposedPorts = make(map[nat.Port]struct{}, exposedPortsLen)
+
+		for _, exposedPort := range service.Spec.ExposedPorts {
+			proto, port := nat.SplitProtoPort(exposedPort)
+			start, end, err := nat.ParsePortRangeToInt(port)
+			if err != nil {
+				return err
+			}
+
+			for i := start; i <= end; i++ {
+				p, err := nat.NewPort(proto, strconv.Itoa(i))
+				if err != nil {
+					return err
+				}
+
+				if _, exists := config.ExposedPorts[p]; !exists {
+					config.ExposedPorts[p] = struct{}{}
+				}
+			}
+		}
+	}
+
 	if service.Project != "" {
 		config.Labels["wpld.project"] = service.Project
 		config.Labels["wpld.service"] = service.Spec.Name
-		config.Labels["wpld.domains"] = strings.Join(service.Domains, " ")
+		config.Labels["wpld.domains"] = strings.Join(service.Domains, ",")
 	}
 
 	envLen := len(service.Spec.Env)
