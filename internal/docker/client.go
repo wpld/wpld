@@ -160,8 +160,14 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 
 	if service.Project != "" {
 		config.Labels["wpld.project"] = service.Project
+	}
+
+	if service.Spec.Name != "" {
 		config.Labels["wpld.service"] = service.Spec.Name
-		config.Labels["wpld.domains"] = strings.Join(service.Domains, ",")
+	}
+
+	if len(service.Spec.Domains) > 0 {
+		config.Labels["wpld.domains"] = strings.Join(service.Spec.Domains, ",")
 	}
 
 	envLen := len(service.Spec.Env)
@@ -336,14 +342,9 @@ func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container
 	)
 }
 
-func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, error) {
-	filterArgs := filters.NewArgs()
-	filterArgs.Add("label", "wpld.project")
-	filterArgs.Add("expose", "80")
-
-	args := types.ContainerListOptions{
-		Filters: filterArgs,
-	}
+func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]string, error) {
+	args := types.ContainerListOptions{Filters: filters.NewArgs()}
+	args.Filters.Add("label", "wpld.domains")
 
 	list, err := d.api.ContainerList(ctx, args)
 	if err != nil {

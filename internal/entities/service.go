@@ -6,7 +6,6 @@ type Service struct {
 	Aliases      []string
 	Project      string
 	Spec         Specification
-	Domains      []string
 	AttachStdout bool
 	AttachStdin  bool
 	AttachStderr bool

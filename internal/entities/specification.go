@@ -14,4 +14,5 @@ type Specification struct {
 	Ports        []string          `yaml:"ports,omitempty"`
 	Env          map[string]string `yaml:"env,omitempty"`
 	DependsOn    []string          `yaml:"depends_on,omitempty"`
+	Domains      []string          `yaml:"domains,omitempty"`
 }

@@ -10,7 +10,6 @@ import (
 type Project struct {
 	ID       string                   `yaml:"id"`
 	Name     string                   `yaml:"name"`
-	Domains  []string                 `yaml:"domains"`
 	Volumes  []string                 `yaml:"volumes"`
 	Services map[string]Specification `yaml:"services"`
 }
@@ -51,7 +50,6 @@ func (p Project) GetServices() ([]Service, error) {
 					Network: p.GetNetworkName(),
 					Project: p.Name,
 					Spec:    p.Services[id],
-					Domains: p.Domains,
 					Aliases: []string{
 						id,
 						containerID,

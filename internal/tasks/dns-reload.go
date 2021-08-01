@@ -19,7 +19,7 @@ var proxyConf string
 
 func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
-		domains, err := api.FindHTTPContainers(ctx)
+		domains, err := api.FindContainersWithDomains(ctx)
 		if err != nil {
 			return err
 		}
