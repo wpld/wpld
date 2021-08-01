@@ -30,7 +30,7 @@ var newCmd = &cobra.Command{
 			tasks.ProjectWPCLIConfigPipe(fs),
 			tasks.ProjectMarshalPipe(fs),
 			tasks.ContainersStartPipe(api, false),
-			tasks.ReloadProxyPipe(api, fs),
+			tasks.DNSReloadPipe(api, fs),
 		)
 
 		return pipeline.Run(c.Context())

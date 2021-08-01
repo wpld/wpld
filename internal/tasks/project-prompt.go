@@ -89,7 +89,7 @@ func ProjectPromptPipe() pipelines.Pipe {
 		services := map[string]entities.Specification{
 			"wp":    specs.NewWordPressSpec(projectSlug, wpVolume, answers.PHP),
 			"db":    specs.NewDatabaseSpec(projectSlug, dbVolume),
-			"nginx": specs.NewNginxSpec(),
+			"nginx": specs.NewNginxSpec(answers.Domains),
 		}
 
 		if answers.Cache == "Memcached" {
@@ -114,7 +114,6 @@ func ProjectPromptPipe() pipelines.Pipe {
 			entities.Project{
 				ID:       projectSlug,
 				Name:     answers.Name,
-				Domains:  answers.Domains,
 				Volumes:  volumes,
 				Services: services,
 			},

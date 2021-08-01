@@ -4,7 +4,7 @@ import (
 	"wpld/internal/entities"
 )
 
-func NewNginxSpec() entities.Specification {
+func NewNginxSpec(domains []string) entities.Specification {
 	return entities.Specification{
 		Name:    "Nginx",
 		Image:   "nginx:alpine",
@@ -15,5 +15,6 @@ func NewNginxSpec() entities.Specification {
 		DependsOn: []string{
 			"wp",
 		},
+		Domains: domains,
 	}
 }

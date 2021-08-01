@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -133,10 +134,40 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		},
 	}
 
+	exposedPortsLen := len(service.Spec.ExposedPorts)
+	if exposedPortsLen > 0 {
+		config.ExposedPorts = make(map[nat.Port]struct{}, exposedPortsLen)
+
+		for _, exposedPort := range service.Spec.ExposedPorts {
+			proto, port := nat.SplitProtoPort(exposedPort)
+			start, end, err := nat.ParsePortRangeToInt(port)
+			if err != nil {
+				return err
+			}
+
+			for i := start; i <= end; i++ {
+				p, err := nat.NewPort(proto, strconv.Itoa(i))
+				if err != nil {
+					return err
+				}
+
+				if _, exists := config.ExposedPorts[p]; !exists {
+					config.ExposedPorts[p] = struct{}{}
+				}
+			}
+		}
+	}
+
 	if service.Project != "" {
 		config.Labels["wpld.project"] = service.Project
+	}
+
+	if service.Spec.Name != "" {
 		config.Labels["wpld.service"] = service.Spec.Name
-		config.Labels["wpld.domains"] = strings.Join(service.Domains, " ")
+	}
+
+	if len(service.Spec.Domains) > 0 {
+		config.Labels["wpld.domains"] = strings.Join(service.Spec.Domains, ",")
 	}
 
 	envLen := len(service.Spec.Env)
@@ -311,14 +342,9 @@ func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container
 	)
 }
 
-func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, error) {
-	filterArgs := filters.NewArgs()
-	filterArgs.Add("label", "wpld.project")
-	filterArgs.Add("expose", "80")
-
-	args := types.ContainerListOptions{
-		Filters: filterArgs,
-	}
+func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]string, error) {
+	args := types.ContainerListOptions{Filters: filters.NewArgs()}
+	args.Filters.Add("label", "wpld.domains")
 
 	list, err := d.api.ContainerList(ctx, args)
 	if err != nil {
@@ -327,8 +353,11 @@ func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, erro
 
 	domainMapping := make(map[string]string)
 	for _, c := range list {
-		if domains, ok := c.Labels["wpld.domains"]; ok {
-			domainMapping[domains] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+		if domainsLabel, ok := c.Labels["wpld.domains"]; ok {
+			domains := strings.Split(domainsLabel, ",")
+			for _, domain := range domains {
+				domainMapping[domain] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+			}
 		}
 	}
 

@@ -33,7 +33,7 @@ var startCmd = &cobra.Command{
 		pipeline := pipelines.NewPipeline(
 			tasks.ProjectUnmarshalPipe(fs),
 			tasks.ContainersStartPipe(api, pull),
-			tasks.ReloadProxyPipe(api, fs),
+			tasks.DNSReloadPipe(api, fs),
 		)
 
 		return pipeline.Run(c.Context())
