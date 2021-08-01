@@ -352,8 +352,11 @@ func (d Docker) FindHTTPContainers(ctx context.Context) (map[string]string, erro
 
 	domainMapping := make(map[string]string)
 	for _, c := range list {
-		if domains, ok := c.Labels["wpld.domains"]; ok {
-			domainMapping[domains] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+		if domainsLabel, ok := c.Labels["wpld.domains"]; ok {
+			domains := strings.Split(domainsLabel, ",")
+			for _, domain := range domains {
+				domainMapping[domain] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+			}
 		}
 	}
 
