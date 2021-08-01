@@ -34,7 +34,7 @@ func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 		}
 
 		tmpdir := afero.GetTempDir(fs, "wpld")
-		file, err := afero.TempFile(fs, tmpdir, "reverse-proxy.*.conf")
+		file, err := afero.TempFile(fs, tmpdir, "dnsmasq.*.conf")
 		if err != nil {
 			return err
 		}
