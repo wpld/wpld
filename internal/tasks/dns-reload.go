@@ -12,6 +12,7 @@ import (
 	"wpld/internal/docker"
 	"wpld/internal/entities/services"
 	"wpld/internal/pipelines"
+	"wpld/internal/stdout"
 )
 
 //go:embed embeds/dnsmasq/dnsmasq.conf
@@ -26,11 +27,17 @@ func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 
 		dns := services.NewDnsService()
 		if len(domains) == 0 {
-			if err := api.ContainerStop(ctx, dns); err != nil {
+			stdout.StartSpinner("Stopping global DNS...")
+			err := api.ContainerStop(ctx, dns)
+			stdout.StopSpinner()
+
+			if err != nil {
 				return err
 			} else {
-				return next(ctx)
+				stdout.Success("Global DNS stopped")
 			}
+
+			return next(ctx)
 		}
 
 		tmpdir := afero.GetTempDir(fs, "wpld")
@@ -39,7 +46,7 @@ func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			return err
 		}
 
-		tmpl, err := template.New("proxy").Parse(proxyConf)
+		tmpl, err := template.New("dnsmasq").Parse(proxyConf)
 		if err != nil {
 			return err
 		}
@@ -57,8 +64,14 @@ func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			fmt.Sprintf("%s:/etc/dnsmasq.conf:cached", file.Name()),
 		}
 
-		if err := api.ContainerRestart(ctx, dns); err != nil {
+		stdout.StartSpinner("Starting global DNS...")
+		err = api.ContainerRestart(ctx, dns)
+		stdout.StopSpinner()
+
+		if err != nil {
 			return err
+		} else {
+			stdout.Success("Global DNS started")
 		}
 
 		return next(ctx)
