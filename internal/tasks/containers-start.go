@@ -34,7 +34,7 @@ func ContainersStartPipe(api docker.Docker, pull bool) pipelines.Pipe {
 
 		for _, service := range services {
 			if service.Spec.Name != "" {
-				msg := fmt.Sprintf("%s started", service.Spec.Name)
+				msg := fmt.Sprintf("Starting %s...", service.Spec.Name)
 				stdout.StartSpinner(msg)
 			}
 
