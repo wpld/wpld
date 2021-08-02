@@ -41,6 +41,7 @@ var stopCmd = &cobra.Command{
 			pipeline = pipelines.NewPipeline(
 				tasks.ProjectUnmarshalPipe(fs),
 				tasks.ContainersStopPipe(api),
+				tasks.PHPMyAdminReloadPipe(api),
 				tasks.DNSReloadPipe(api, fs),
 			)
 		}

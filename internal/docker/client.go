@@ -342,9 +342,41 @@ func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container
 	)
 }
 
+func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, error) {
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("label", "wpld")
+	filterArgs.Add("expose", "3306")
+
+	args := types.ContainerListOptions{
+		Filters: filterArgs,
+	}
+
+	list, err := d.api.ContainerList(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	domainMapping := make(map[string]string, len(list))
+	for _, c := range list {
+		ip := c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+
+		if project, ok := c.Labels["wpld.project"]; ok {
+			domainMapping[ip] = project
+		} else {
+			domainMapping[ip] = ip
+		}
+	}
+
+	return domainMapping, nil
+}
+
 func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]string, error) {
-	args := types.ContainerListOptions{Filters: filters.NewArgs()}
-	args.Filters.Add("label", "wpld.domains")
+	filterArgs := filters.NewArgs()
+	filterArgs.Add("label", "wpld.domains")
+
+	args := types.ContainerListOptions{
+		Filters: filterArgs,
+	}
 
 	list, err := d.api.ContainerList(ctx, args)
 	if err != nil {
@@ -356,7 +388,9 @@ func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]strin
 		if domainsLabel, ok := c.Labels["wpld.domains"]; ok {
 			domains := strings.Split(domainsLabel, ",")
 			for _, domain := range domains {
-				domainMapping[domain] = c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
+				if networkInfo, ok := c.NetworkSettings.Networks[c.HostConfig.NetworkMode]; ok {
+					domainMapping[domain] = networkInfo.IPAddress
+				}
 			}
 		}
 	}

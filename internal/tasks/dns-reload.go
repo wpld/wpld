@@ -16,7 +16,7 @@ import (
 )
 
 //go:embed embeds/dnsmasq/dnsmasq.conf
-var proxyConf string
+var dnsmasqConf string
 
 func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
@@ -46,7 +46,7 @@ func DNSReloadPipe(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			return err
 		}
 
-		tmpl, err := template.New("dnsmasq").Parse(proxyConf)
+		tmpl, err := template.New("dnsmasq").Parse(dnsmasqConf)
 		if err != nil {
 			return err
 		}
