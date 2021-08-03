@@ -14,7 +14,7 @@ func NewPHPMyAdminService() entities.Service {
 				"UPLOAD_LIMIT": "1024MiB",
 			},
 			Domains: []string{
-				"phpmyadmin.local",
+				"phpmyadmin",
 			},
 		},
 	}
