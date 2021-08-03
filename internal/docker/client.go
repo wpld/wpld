@@ -78,7 +78,7 @@ func (d Docker) EnsureNetworkExists(ctx context.Context, networkID string) error
 		EnableIPv6:     false,
 		Internal:       false,
 		Attachable:     false,
-		Labels:         basicLabels,
+		Labels:         GetBasicLabels(),
 	}
 
 	_, err = d.api.NetworkCreate(ctx, networkID, args)
@@ -97,7 +97,7 @@ func (d Docker) EnsureVolumeExists(ctx context.Context, volumeID string) error {
 	args := volume.VolumeCreateBody{
 		Name:   volumeID,
 		Driver: "local",
-		Labels: basicLabels,
+		Labels: GetBasicLabels(),
 	}
 
 	_, err = d.api.VolumeCreate(ctx, args)
@@ -128,7 +128,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		AttachStdout: service.AttachStdout,
 		OpenStdin:    service.AttachStdin,
 		Tty:          service.Tty,
-		Labels:       basicLabels,
+		Labels:       GetBasicLabels(),
 	}
 
 	exposedPortsLen := len(service.Spec.ExposedPorts)
