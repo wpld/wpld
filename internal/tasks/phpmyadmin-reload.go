@@ -56,6 +56,11 @@ func PHPMyAdminReloadPipe(api docker.Docker) pipelines.Pipe {
 
 		stdout.StartSpinner("Starting global phpMyAdmin...")
 		err = api.ContainerRestart(ctx, phpmyadmin)
+		if err == nil {
+			if networks, networksErr := api.FindAllNetworks(ctx); networksErr == nil {
+				err = api.ContainerConnectNetworks(ctx, phpmyadmin, networks)
+			}
+		}
 		stdout.StopSpinner()
 
 		if err != nil {

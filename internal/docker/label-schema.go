@@ -1,6 +1,9 @@
 package docker
 
+import (
+	"wpld/internal/misc"
+)
+
 var basicLabels = map[string]string{
-	"org.label-schema.schema-version": "1.0",
-	"org.label-schema.vendor":         "wpld",
+	"wpld": misc.VERSION,
 }

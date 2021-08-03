@@ -18,7 +18,6 @@ import (
 	"github.com/docker/go-connections/nat"
 
 	"wpld/internal/entities"
-	"wpld/internal/misc"
 	"wpld/internal/stdout"
 )
 
@@ -129,9 +128,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		AttachStdout: service.AttachStdout,
 		OpenStdin:    service.AttachStdin,
 		Tty:          service.Tty,
-		Labels: map[string]string{
-			"wpld": misc.VERSION,
-		},
+		Labels:       basicLabels,
 	}
 
 	exposedPortsLen := len(service.Spec.ExposedPorts)
@@ -330,6 +327,17 @@ func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tai
 	return nil
 }
 
+func (d Docker) ContainerConnectNetworks(ctx context.Context, service entities.Service, networks []string) error {
+	for _, n := range networks {
+		config := network.EndpointSettings{}
+		if err := d.api.NetworkConnect(ctx, n, service.ID, &config); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container, error) {
 	filterArgs := filters.NewArgs()
 	filterArgs.Add("label", "wpld")
@@ -343,12 +351,17 @@ func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container
 }
 
 func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, error) {
-	filterArgs := filters.NewArgs()
-	filterArgs.Add("label", "wpld")
-	filterArgs.Add("expose", "3306")
-
 	args := types.ContainerListOptions{
-		Filters: filterArgs,
+		Filters: filters.NewArgs(
+			filters.Arg(
+				"label",
+				"wpld",
+			),
+			filters.Arg(
+				"expose",
+				"3306",
+			),
+		),
 	}
 
 	list, err := d.api.ContainerList(ctx, args)
@@ -371,11 +384,13 @@ func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, err
 }
 
 func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]string, error) {
-	filterArgs := filters.NewArgs()
-	filterArgs.Add("label", "wpld.domains")
-
 	args := types.ContainerListOptions{
-		Filters: filterArgs,
+		Filters: filters.NewArgs(
+			filters.Arg(
+				"label",
+				"wpld.domains",
+			),
+		),
 	}
 
 	list, err := d.api.ContainerList(ctx, args)
@@ -396,4 +411,27 @@ func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]strin
 	}
 
 	return domainMapping, nil
+}
+
+func (d Docker) FindAllNetworks(ctx context.Context) ([]string, error) {
+	args := types.NetworkListOptions{
+		Filters: filters.NewArgs(
+			filters.Arg(
+				"label",
+				"wpld",
+			),
+		),
+	}
+
+	list, err := d.api.NetworkList(ctx, args)
+	if err != nil {
+		return nil, err
+	}
+
+	networks := make([]string, len(list))
+	for i, n := range list {
+		networks[i] = n.ID
+	}
+
+	return networks, nil
 }

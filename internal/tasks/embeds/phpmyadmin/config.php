@@ -11,7 +11,6 @@ $cfg['blowfish_secret'] = 'l3+wF5o$MUK@hj;[HLkQ4#V9-m?b4JmgXa]H_{uH#H]x|oQI%c1s|
  */
 $i                    = 0;
 $cfg['ServerDefault'] = 1;
-
 {{ range $key, $value := . }}
 $i++;
 $cfg['Servers'][$i]['host']      = '{{ $key }}';
