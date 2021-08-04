@@ -35,6 +35,7 @@ var startCmd = &cobra.Command{
 			tasks.ContainersStartPipe(api, pull),
 			tasks.PHPMyAdminReloadPipe(api),
 			tasks.DNSReloadPipe(api, fs),
+			tasks.ProjectInformationPipe(api),
 		)
 
 		return pipeline.Run(c.Context())

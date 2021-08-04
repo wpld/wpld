@@ -327,6 +327,10 @@ func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tai
 	return nil
 }
 
+func (d Docker) ContainerInspect(ctx context.Context, service entities.Service) (types.ContainerJSON, error) {
+	return d.api.ContainerInspect(ctx, service.ID)
+}
+
 func (d Docker) ContainerConnectNetworks(ctx context.Context, service entities.Service, networks []string) error {
 	for _, n := range networks {
 		config := network.EndpointSettings{}
@@ -339,15 +343,16 @@ func (d Docker) ContainerConnectNetworks(ctx context.Context, service entities.S
 }
 
 func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container, error) {
-	filterArgs := filters.NewArgs()
-	filterArgs.Add("label", "wpld")
+	args := types.ContainerListOptions{
+		Filters: filters.NewArgs(
+			filters.Arg(
+				"label",
+				"wpld",
+			),
+		),
+	}
 
-	return d.api.ContainerList(
-		ctx,
-		types.ContainerListOptions{
-			Filters: filterArgs,
-		},
-	)
+	return d.api.ContainerList(ctx, args)
 }
 
 func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, error) {
