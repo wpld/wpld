@@ -20,7 +20,7 @@ func Box(lines []string, formatted []string) {
 		return
 	}
 
-	padding := 5
+	padding := 3
 	fullLen := longest + padding*2
 
 	pipeLine := color.MagentaString("│")
