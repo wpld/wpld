@@ -35,7 +35,7 @@ func ProjectWPCLIConfigPipe(fs afero.Fs) pipelines.Pipe {
 
 			wp.Volumes = append(
 				wp.Volumes,
-				fmt.Sprintf("%s:/var/html/www/wp-cli.yml:ro", configFilename),
+				fmt.Sprintf("%s:/var/www/html/wp-cli.yml:ro", configFilename),
 			)
 
 			project.Services["wp"] = wp
