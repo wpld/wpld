@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/afero"
-	"gopkg.in/yaml.v3"
+	"github.com/spf13/viper"
 
 	"wpld/internal/entities"
 	"wpld/internal/pipelines"
@@ -14,7 +14,11 @@ import (
 
 func ProjectUnmarshalPipe(fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
-		var config string
+		config := viper.New()
+		config.SetFs(fs)
+		config.SetConfigName(".wpld")
+		config.SetConfigType("yaml")
+		config.AddConfigPath(".")
 
 		dir, err := os.Getwd()
 		if err != nil {
@@ -22,32 +26,28 @@ func ProjectUnmarshalPipe(fs afero.Fs) pipelines.Pipe {
 		}
 
 		for {
-			config = filepath.Join(dir, ".wpld.yml")
-			if exists, err := afero.Exists(fs, config); err != nil {
-				return err
-			} else if exists {
-				break
-			}
-
-			parent := filepath.Dir(dir)
-			if parent == dir {
-				break
-			} else {
+			if parent := filepath.Dir(dir); parent != dir {
+				config.AddConfigPath(parent)
 				dir = parent
+			} else {
+				break
 			}
 		}
 
-		data, err := afero.ReadFile(fs, config)
-		if err != nil {
-			return err
+		if err := config.ReadInConfig(); err != nil {
+			if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+				return ProjectNotFoundErr
+			} else {
+				return err
+			}
 		}
 
 		var project entities.Project
-		if err = yaml.Unmarshal(data, &project); err != nil {
+		if err := config.Unmarshal(&project); err != nil {
 			return err
 		}
 
-		if err := os.Chdir(dir); err != nil {
+		if err := os.Chdir(filepath.Dir(config.ConfigFileUsed())); err != nil {
 			return err
 		}
 
