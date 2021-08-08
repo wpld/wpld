@@ -7,7 +7,7 @@ import (
 func NewPHPMyAdminService() entities.Service {
 	return entities.Service{
 		ID:      "wpld__phpmyadmin",
-		Network: "bridge",
+		Network: globalNetwork,
 		Spec: entities.Specification{
 			Image: "phpmyadmin:latest",
 			Env: map[string]string{

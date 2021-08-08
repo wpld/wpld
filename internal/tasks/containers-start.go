@@ -17,10 +17,6 @@ func ContainersStartPipe(api docker.Docker, pull bool) pipelines.Pipe {
 			return ProjectNotFoundErr
 		}
 
-		if err := api.EnsureNetworkExists(ctx, project.GetNetworkName()); err != nil {
-			return err
-		}
-
 		for _, volume := range project.Volumes {
 			if err := api.EnsureVolumeExists(ctx, volume); err != nil {
 				return err

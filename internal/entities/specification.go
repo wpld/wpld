@@ -19,6 +19,7 @@ type Specification struct {
 	Env          map[string]string `yaml:"env,omitempty"`
 	DependsOn    []string          `yaml:"depends_on,omitempty"`
 	Domains      []string          `yaml:"domains,omitempty"`
+	IPAddress    string            `yaml:"ipv4_address,omitempty"`
 }
 
 func (s Specification) GetEnvs() []string {

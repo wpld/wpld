@@ -63,8 +63,8 @@ func (d Docker) EnsureImageExists(ctx context.Context, imageID string, force boo
 	return nil
 }
 
-func (d Docker) EnsureNetworkExists(ctx context.Context, networkID string) error {
-	_, err := d.api.NetworkInspect(ctx, networkID, types.NetworkInspectOptions{})
+func (d Docker) EnsureNetworkExists(ctx context.Context, net entities.Network) error {
+	_, err := d.api.NetworkInspect(ctx, net.Name, types.NetworkInspectOptions{})
 	if err == nil {
 		return nil
 	} else if !client.IsErrNotFound(err) {
@@ -80,7 +80,18 @@ func (d Docker) EnsureNetworkExists(ctx context.Context, networkID string) error
 		Labels:         GetBasicLabels(),
 	}
 
-	_, err = d.api.NetworkCreate(ctx, networkID, args)
+	if net.Subnet != "" {
+		args.IPAM = &network.IPAM{
+			Driver: "default",
+			Config: []network.IPAMConfig{
+				{
+					Subnet: net.Subnet,
+				},
+			},
+		}
+	}
+
+	_, err = d.api.NetworkCreate(ctx, net.Name, args)
 
 	return err
 }
@@ -110,6 +121,12 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		return err
 	} else if exists {
 		return nil
+	}
+
+	if service.Network.Name != "" {
+		if err := d.EnsureNetworkExists(ctx, service.Network); err != nil {
+			return err
+		}
 	}
 
 	if err := d.EnsureImageExists(ctx, service.Spec.Image, pull); err != nil {
@@ -173,7 +190,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 
 	host := &container.HostConfig{
 		Binds:       NormalizeContainerBinds(service.Spec.Volumes),
-		NetworkMode: container.NetworkMode(service.Network),
+		NetworkMode: container.NetworkMode(service.Network.Name),
 		AutoRemove:  true,
 		IpcMode:     "shareable",
 		CapAdd:      service.Spec.CapAdd,
@@ -191,11 +208,15 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	}
 
 	var networking *network.NetworkingConfig
-	if len(service.Aliases) > 0 {
+
+	if len(service.Aliases) > 0 || service.Spec.IPAddress != "" {
 		networking = &network.NetworkingConfig{
 			EndpointsConfig: map[string]*network.EndpointSettings{
-				service.Network: {
+				service.Network.Name: {
 					Aliases: service.Aliases,
+					IPAMConfig: &network.EndpointIPAMConfig{
+						IPv4Address: service.Spec.IPAddress,
+					},
 				},
 			},
 		}
@@ -461,9 +482,11 @@ func (d Docker) FindAllNetworks(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 
-	networks := make([]string, len(list))
-	for i, n := range list {
-		networks[i] = n.ID
+	networks := []string{}
+	for _, net := range list {
+		if net.Name != "wpld" {
+			networks = append(networks, net.ID)
+		}
 	}
 
 	return networks, nil

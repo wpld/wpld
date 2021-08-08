@@ -24,7 +24,6 @@ func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 
 		wpcli := entities.Service{
 			ID:           project.GetContainerIDForService("wp-cli"),
-			Network:      project.GetNetworkName(),
 			Project:      project.Name,
 			AttachStdout: true,
 			AttachStdin:  true,
@@ -37,6 +36,9 @@ func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 					project.GetContainerIDForService("wp"),
 				},
 				Env: wp.Env,
+			},
+			Network: entities.Network{
+				Name: project.GetNetworkName(),
 			},
 		}
 

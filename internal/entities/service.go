@@ -2,7 +2,7 @@ package entities
 
 type Service struct {
 	ID           string
-	Network      string
+	Network      Network
 	Aliases      []string
 	Project      string
 	Spec         Specification
