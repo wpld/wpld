@@ -15,6 +15,7 @@ func ContainerExecPipe(api docker.Docker, cmd []string, wd string) pipelines.Pip
 			return ServiceNotFoundErr
 		}
 
+		// TODO: implement EXEC command as it is done in the docker-cli https://github.com/docker/cli/blob/master/cli/command/container/exec.go
 		if err := api.ContainerStart(ctx, service, false); err != nil {
 			return err
 		}
