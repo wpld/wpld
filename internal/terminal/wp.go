@@ -12,7 +12,7 @@ import (
 var wpCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
-	Use:           "wp",
+	Use:           "wp COMMAND [ARG...]",
 	Short:         "short wp desc",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		api, err := docker.NewDocker()

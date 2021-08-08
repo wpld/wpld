@@ -8,7 +8,7 @@ import (
 	"wpld/internal/pipelines"
 )
 
-func ContainerSSHPipe(api docker.Docker) pipelines.Pipe {
+func ContainerExecPipe(api docker.Docker, cmd []string, wd string) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		service, ok := ctx.Value("service").(entities.Service)
 		if !ok {
@@ -19,7 +19,7 @@ func ContainerSSHPipe(api docker.Docker) pipelines.Pipe {
 			return err
 		}
 
-		if err := api.ContainerAttach(ctx, service); err != nil {
+		if err := api.ContainerExecAttach(ctx, service, cmd, wd); err != nil {
 			return err
 		}
 

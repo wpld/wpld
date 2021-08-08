@@ -1,5 +1,9 @@
 package entities
 
+import (
+	"fmt"
+)
+
 type Specification struct {
 	Name         string            `yaml:"name"`
 	Image        string            `yaml:"image,omitempty"`
@@ -15,4 +19,16 @@ type Specification struct {
 	Env          map[string]string `yaml:"env,omitempty"`
 	DependsOn    []string          `yaml:"depends_on,omitempty"`
 	Domains      []string          `yaml:"domains,omitempty"`
+}
+
+func (s Specification) GetEnvs() []string {
+	i := 0
+	envs := make([]string, len(s.Env))
+
+	for key, value := range s.Env {
+		envs[i] = fmt.Sprintf("%s=%s", key, value)
+		i++
+	}
+
+	return envs
 }

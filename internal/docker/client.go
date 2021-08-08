@@ -2,7 +2,6 @@ package docker
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -169,12 +168,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 
 	envLen := len(service.Spec.Env)
 	if envLen > 0 {
-		i := 0
-		config.Env = make([]string, envLen)
-		for key, value := range service.Spec.Env {
-			config.Env[i] = fmt.Sprintf("%s=%s", key, value)
-			i++
-		}
+		config.Env = service.Spec.GetEnvs()
 	}
 
 	host := &container.HostConfig{
@@ -298,6 +292,40 @@ func (d Docker) ContainerAttach(ctx context.Context, service entities.Service) e
 	// TODO: add signals forwarding https://github.com/docker/cli/blob/master/cli/command/container/attach.go#L99-L102
 
 	// TODO: fix broken raw terminal state
+
+	hijackedStreamer := NewHijackedStreamer(attach, service.Tty)
+	if err := hijackedStreamer.Stream(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (d Docker) ContainerExecAttach(ctx context.Context, service entities.Service, cmd []string, wd string) error {
+	execOptions := types.ExecConfig{
+		Tty:          service.Tty,
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Detach:       false,
+		Env:          service.Spec.GetEnvs(),
+		WorkingDir:   wd,
+		Cmd:          cmd,
+	}
+
+	idresp, err := d.api.ContainerExecCreate(ctx, service.ID, execOptions)
+	if err != nil {
+		return err
+	}
+
+	attachOptions := types.ExecStartCheck{
+		Tty: service.Tty,
+	}
+
+	attach, err := d.api.ContainerExecAttach(ctx, idresp.ID, attachOptions)
+	if err != nil {
+		return err
+	}
 
 	hijackedStreamer := NewHijackedStreamer(attach, service.Tty)
 	if err := hijackedStreamer.Stream(ctx); err != nil {

@@ -9,11 +9,11 @@ import (
 	"wpld/internal/tasks"
 )
 
-var sshCmd = &cobra.Command{
+var execCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
-	Use:           "ssh [service]",
-	Short:         "ssh short desc",
+	Use:           "exec [SERVICE] [COMMAND] [ARG...]",
+	Short:         "exec short desc",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		api, err := docker.NewDocker()
 		if err != nil {
@@ -27,10 +27,20 @@ var sshCmd = &cobra.Command{
 			service = args[0]
 		}
 
+		command := []string{"bash"}
+		if len(args) > 1 {
+			command = args[1:]
+		}
+
+		wd, err := cmd.Flags().GetString("working-dir")
+		if err != nil {
+			return err
+		}
+
 		pipeline := pipelines.NewPipeline(
 			tasks.ProjectUnmarshalPipe(fs),
 			tasks.ServiceFindPipe(service),
-			tasks.ContainerSSHPipe(api),
+			tasks.ContainerExecPipe(api, command, wd),
 		)
 
 		return pipeline.Run(cmd.Context())
@@ -38,5 +48,7 @@ var sshCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(sshCmd)
+	rootCmd.AddCommand(execCmd)
+
+	execCmd.Flags().StringP("working-dir", "w", "", "working directory")
 }
