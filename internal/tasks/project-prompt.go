@@ -19,6 +19,7 @@ func ProjectPromptPipe() pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		var answers struct {
 			Name    string
+			Type    string
 			Domains []string
 			PHP     string `survey:"php"`
 			Cache   string
@@ -40,6 +41,18 @@ func ProjectPromptPipe() pipelines.Pipe {
 					} else {
 						return answer
 					}
+				},
+			},
+			{
+				Name: "type",
+				Prompt: &survey.Select{
+					Message: "Project Type:",
+					Default: specs.PROJECT_TYPE_PLUGIN,
+					Options: []string{
+						specs.PROJECT_TYPE_PLUGIN,
+						specs.PROJECT_TYPE_THEME,
+						specs.PROJECT_TYPE_WP_CONTENT,
+					},
 				},
 			},
 			{
@@ -87,7 +100,7 @@ func ProjectPromptPipe() pipelines.Pipe {
 		}
 
 		services := map[string]entities.Specification{
-			"wp":    specs.NewWordPressSpec(projectSlug, wpVolume, answers.PHP),
+			"wp":    specs.NewWordPressSpec(projectSlug, projectSlug, wpVolume, answers.PHP, answers.Type),
 			"db":    specs.NewDatabaseSpec(projectSlug, dbVolume),
 			"nginx": specs.NewNginxSpec(answers.Domains),
 		}
@@ -108,7 +121,7 @@ func ProjectPromptPipe() pipelines.Pipe {
 			}
 		}
 
-		return next(context.WithValue(
+		ctx = context.WithValue(
 			ctx,
 			"project",
 			entities.Project{
@@ -117,6 +130,8 @@ func ProjectPromptPipe() pipelines.Pipe {
 				Volumes:  volumes,
 				Services: services,
 			},
-		))
+		)
+
+		return next(ctx)
 	}
 }
