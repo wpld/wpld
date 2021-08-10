@@ -6,5 +6,5 @@ import (
 
 var globalNetwork = entities.Network{
 	Name:   "wpld",
-	Subnet: "10.0.1.0/24",
+	Subnet: "10.0.10.0/24",
 }

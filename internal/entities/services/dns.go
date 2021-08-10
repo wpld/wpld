@@ -10,7 +10,7 @@ func NewDnsService() entities.Service {
 		Network: globalNetwork,
 		Spec: entities.Specification{
 			Image:     "4km3/dnsmasq:latest",
-			IPAddress: "10.0.1.53",
+			IPAddress: "10.0.10.53",
 			CapAdd: []string{
 				"NET_ADMIN",
 			},
