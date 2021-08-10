@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
+	"gopkg.in/yaml.v3"
 
 	"wpld/internal/entities"
 	"wpld/internal/pipelines"
@@ -42,12 +43,20 @@ func ProjectUnmarshalPipe(fs afero.Fs) pipelines.Pipe {
 			}
 		}
 
-		var project entities.Project
-		if err := config.Unmarshal(&project); err != nil {
+		// Viper updates all env variables to be in a lower case register. This is not acceptable for us, so we need to
+		// read the config file again and parse it manually.
+		configFile := config.ConfigFileUsed()
+		data, err := afero.ReadFile(fs, configFile)
+		if err != nil {
 			return err
 		}
 
-		if err := os.Chdir(filepath.Dir(config.ConfigFileUsed())); err != nil {
+		var project entities.Project
+		if err := yaml.Unmarshal(data, &project); err != nil {
+			return err
+		}
+
+		if err := os.Chdir(filepath.Dir(configFile)); err != nil {
 			return err
 		}
 
