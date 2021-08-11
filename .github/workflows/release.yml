@@ -20,8 +20,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Test
-        run: go test -v -p=1 -timeout=0 ./...
+#      - name: Test
+#        run: go test -v -p=1 -timeout=0 ./...
       - name: Release
         uses: wangyoucao577/go-release-action@v1.16
         with:
