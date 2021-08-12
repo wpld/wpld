@@ -4,7 +4,9 @@ import (
 	"wpld/internal/entities"
 )
 
-var globalNetwork = entities.Network{
-	Name:   "wpld",
-	Subnet: "10.0.10.0/24",
+func GetGlobalNetwork() entities.Network {
+	return entities.Network{
+		Name:   "wpld",
+		Subnet: "10.1.0.0/24",
+	}
 }

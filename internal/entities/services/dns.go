@@ -7,10 +7,10 @@ import (
 func NewDnsService() entities.Service {
 	return entities.Service{
 		ID:      "wpld__dnsmasq",
-		Network: globalNetwork,
+		Network: GetGlobalNetwork(),
 		Spec: entities.Specification{
 			Image:     "4km3/dnsmasq:latest",
-			IPAddress: "10.0.10.53",
+			IPAddress: "10.1.0.53",
 			CapAdd: []string{
 				"NET_ADMIN",
 			},

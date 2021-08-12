@@ -391,6 +391,19 @@ func (d Docker) ContainerConnectNetworks(ctx context.Context, service entities.S
 	return nil
 }
 
+func (d Docker) NetworkIsInUsed(ctx context.Context, net string) (bool, error) {
+	info, err := d.api.NetworkInspect(ctx, net, types.NetworkInspectOptions{})
+	if err != nil {
+		return false, err
+	} else {
+		return len(info.Containers) > 0, nil
+	}
+}
+
+func (d Docker) NetworkRemove(ctx context.Context, net string) error {
+	return d.api.NetworkRemove(ctx, net)
+}
+
 func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container, error) {
 	args := types.ContainerListOptions{
 		Filters: filters.NewArgs(

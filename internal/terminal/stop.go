@@ -36,6 +36,7 @@ var stopCmd = &cobra.Command{
 		if all {
 			pipeline = pipelines.NewPipeline(
 				tasks.ContainersStopAllPipe(api),
+				tasks.NetworksRemovePipe(api),
 			)
 		} else {
 			pipeline = pipelines.NewPipeline(
@@ -43,6 +44,7 @@ var stopCmd = &cobra.Command{
 				tasks.ContainersStopPipe(api),
 				tasks.PHPMyAdminReloadPipe(api),
 				tasks.DNSReloadPipe(api, fs),
+				tasks.NetworksRemovePipe(api),
 			)
 		}
 
