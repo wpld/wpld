@@ -6,6 +6,6 @@ import (
 
 func GetBasicLabels() map[string]string {
 	return map[string]string{
-		"wpld": misc.VERSION,
+		"io.wpld.version": misc.VERSION,
 	}
 }

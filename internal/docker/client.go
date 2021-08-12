@@ -172,15 +172,15 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	}
 
 	if service.Project != "" {
-		config.Labels["wpld.project"] = service.Project
+		config.Labels["io.wpld.project"] = service.Project
 	}
 
 	if service.Spec.Name != "" {
-		config.Labels["wpld.service"] = service.Spec.Name
+		config.Labels["io.wpld.service"] = service.Spec.Name
 	}
 
 	if len(service.Spec.Domains) > 0 {
-		config.Labels["wpld.domains"] = strings.Join(service.Spec.Domains, ",")
+		config.Labels["io.wpld.domains"] = strings.Join(service.Spec.Domains, ",")
 	}
 
 	envLen := len(service.Spec.Env)
@@ -409,7 +409,7 @@ func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container
 		Filters: filters.NewArgs(
 			filters.Arg(
 				"label",
-				"wpld",
+				"io.wpld.version",
 			),
 		),
 	}
@@ -422,7 +422,7 @@ func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, err
 		Filters: filters.NewArgs(
 			filters.Arg(
 				"label",
-				"wpld",
+				"io.wpld.version",
 			),
 			filters.Arg(
 				"expose",
@@ -440,7 +440,7 @@ func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, err
 	for _, c := range list {
 		ip := c.NetworkSettings.Networks[c.HostConfig.NetworkMode].IPAddress
 
-		if project, ok := c.Labels["wpld.project"]; ok {
+		if project, ok := c.Labels["io.wpld.project"]; ok {
 			domainMapping[ip] = project
 		} else {
 			domainMapping[ip] = ip
@@ -455,7 +455,7 @@ func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]strin
 		Filters: filters.NewArgs(
 			filters.Arg(
 				"label",
-				"wpld.domains",
+				"io.wpld.domains",
 			),
 		),
 	}
@@ -467,7 +467,7 @@ func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]strin
 
 	domainMapping := make(map[string]string)
 	for _, c := range list {
-		if domainsLabel, ok := c.Labels["wpld.domains"]; ok {
+		if domainsLabel, ok := c.Labels["io.wpld.domains"]; ok {
 			domains := strings.Split(domainsLabel, ",")
 			for _, domain := range domains {
 				if networkInfo, ok := c.NetworkSettings.Networks[c.HostConfig.NetworkMode]; ok {
@@ -485,7 +485,7 @@ func (d Docker) FindAllNetworks(ctx context.Context) ([]string, error) {
 		Filters: filters.NewArgs(
 			filters.Arg(
 				"label",
-				"wpld",
+				"io.wpld.version",
 			),
 		),
 	}
@@ -497,7 +497,7 @@ func (d Docker) FindAllNetworks(ctx context.Context) ([]string, error) {
 
 	networks := []string{}
 	for _, net := range list {
-		if net.Name != "wpld" {
+		if net.Name != "io.wpld.version" {
 			networks = append(networks, net.ID)
 		}
 	}
