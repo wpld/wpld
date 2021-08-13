@@ -497,7 +497,7 @@ func (d Docker) FindAllNetworks(ctx context.Context) ([]string, error) {
 
 	networks := []string{}
 	for _, net := range list {
-		if net.Name != "io.wpld.version" {
+		if net.Name != "wpld" {
 			networks = append(networks, net.ID)
 		}
 	}
