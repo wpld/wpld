@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"context"
+	"os"
 
 	"wpld/internal/docker"
 	"wpld/internal/entities"
@@ -20,10 +21,11 @@ func ContainerExecPipe(api docker.Docker, cmd []string, wd string) pipelines.Pip
 			return err
 		}
 
-		if err := api.ContainerExecAttach(ctx, service, cmd, wd); err != nil {
-			return err
+		statusCode, statusErr := api.ContainerExecAttach(ctx, service, cmd, wd)
+		if statusErr == nil {
+			os.Exit(statusCode)
 		}
 
-		return next(ctx)
+		return statusErr
 	}
 }

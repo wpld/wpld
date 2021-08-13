@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"strconv"
@@ -295,7 +296,9 @@ func (d Docker) ContainerRestart(ctx context.Context, service entities.Service) 
 	return nil
 }
 
-func (d Docker) ContainerAttach(ctx context.Context, service entities.Service) error {
+func (d Docker) ContainerAttach(ctx context.Context, service entities.Service) (int, error) {
+	waitBodyCh, waitErrCh := d.api.ContainerWait(ctx, service.ID, "")
+
 	attachOptions := types.ContainerAttachOptions{
 		Stream: true,
 		Stdin:  service.AttachStdin,
@@ -305,7 +308,7 @@ func (d Docker) ContainerAttach(ctx context.Context, service entities.Service) e
 
 	attach, err := d.api.ContainerAttach(ctx, service.ID, attachOptions)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// @see: https://github.com/docker/cli/blob/master/cli/command/container/attach.go
@@ -316,13 +319,13 @@ func (d Docker) ContainerAttach(ctx context.Context, service entities.Service) e
 
 	hijackedStreamer := NewHijackedStreamer(attach, service.Tty)
 	if err := hijackedStreamer.Stream(ctx); err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return d.ContainerExitStatus(waitBodyCh, waitErrCh)
 }
 
-func (d Docker) ContainerExecAttach(ctx context.Context, service entities.Service, cmd []string, wd string) error {
+func (d Docker) ContainerExecAttach(ctx context.Context, service entities.Service, cmd []string, wd string) (int, error) {
 	execOptions := types.ExecConfig{
 		Tty:          service.Tty,
 		AttachStdin:  true,
@@ -336,24 +339,39 @@ func (d Docker) ContainerExecAttach(ctx context.Context, service entities.Servic
 
 	idresp, err := d.api.ContainerExecCreate(ctx, service.ID, execOptions)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	attachOptions := types.ExecStartCheck{
-		Tty: service.Tty,
-	}
+	waitBodyCh, waitErrCh := d.api.ContainerWait(ctx, service.ID, "")
 
-	attach, err := d.api.ContainerExecAttach(ctx, idresp.ID, attachOptions)
+	attach, err := d.api.ContainerExecAttach(ctx, idresp.ID, types.ExecStartCheck{Tty: service.Tty})
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	hijackedStreamer := NewHijackedStreamer(attach, service.Tty)
 	if err := hijackedStreamer.Stream(ctx); err != nil {
-		return err
+		return 0, err
 	}
 
-	return nil
+	return d.ContainerExitStatus(waitBodyCh, waitErrCh)
+}
+
+func (d Docker) ContainerExitStatus(waitBodyCh <-chan container.ContainerWaitOKBody, waitErrCh <-chan error) (int, error) {
+	select {
+	case result := <-waitBodyCh:
+		if result.Error != nil {
+			return 0, errors.New(result.Error.Message)
+		}
+
+		if result.StatusCode != 0 {
+			return int(result.StatusCode), nil
+		}
+	case err := <-waitErrCh:
+		return 0, err
+	}
+
+	return 0, nil
 }
 
 func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tail string, skipStdout, skipStderr bool) error {

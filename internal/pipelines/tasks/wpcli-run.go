@@ -3,6 +3,7 @@ package tasks
 import (
 	"context"
 	"errors"
+	"os"
 
 	"wpld/internal/docker"
 	"wpld/internal/entities"
@@ -46,10 +47,11 @@ func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 			return err
 		}
 
-		if err := api.ContainerAttach(ctx, wpcli); err != nil {
-			return err
+		statusCode, statusErr := api.ContainerAttach(ctx, wpcli)
+		if statusErr == nil {
+			os.Exit(statusCode)
 		}
 
-		return next(ctx)
+		return statusErr
 	}
 }
