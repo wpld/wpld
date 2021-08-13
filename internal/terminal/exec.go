@@ -6,7 +6,7 @@ import (
 
 	"wpld/internal/docker"
 	"wpld/internal/pipelines"
-	"wpld/internal/tasks"
+	"wpld/internal/pipelines/tasks"
 )
 
 var execCmd = &cobra.Command{
