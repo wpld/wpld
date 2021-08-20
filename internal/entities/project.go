@@ -14,8 +14,10 @@ type Project struct {
 	Services map[string]Specification `yaml:"services"`
 }
 
-func (p Project) GetNetworkName() string {
-	return p.ID
+func (p Project) GetNetwork() Network {
+	return Network{
+		Name: p.ID,
+	}
 }
 
 func (p Project) GetContainerIDForService(serviceID string) string {
@@ -46,10 +48,8 @@ func (p Project) GetServices() ([]Service, error) {
 
 				containerID := p.GetContainerIDForService(id)
 				service := Service{
-					ID: containerID,
-					Network: Network{
-						Name: p.GetNetworkName(),
-					},
+					ID:      containerID,
+					Network: p.GetNetwork(),
 					Project: p.Name,
 					Spec:    p.Services[id],
 					Aliases: []string{

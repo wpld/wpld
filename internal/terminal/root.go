@@ -14,6 +14,17 @@ var rootCmd = &cobra.Command{
 	Use:     "wpld",
 	Short:   "wpld short desc",
 	Version: misc.VERSION,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		pflags := cmd.Root().PersistentFlags()
+		if verbosity, err := pflags.GetCount("verbose"); err == nil {
+			stdout.SetLogLevel(verbosity)
+		}
+	},
+}
+
+func init() {
+	pflags := rootCmd.PersistentFlags()
+	pflags.CountP("verbose", "v", "verbose output")
 }
 
 func Execute(ctx context.Context) {

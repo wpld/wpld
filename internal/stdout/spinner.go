@@ -7,7 +7,10 @@ import (
 	"github.com/briandowns/spinner"
 )
 
-var s *spinner.Spinner
+var (
+	s      *spinner.Spinner
+	paused bool
+)
 
 func init() {
 	s = spinner.New(
@@ -16,6 +19,7 @@ func init() {
 		spinner.WithWriter(os.Stderr),
 		spinner.WithHiddenCursor(true),
 	)
+	paused = false
 }
 
 func StartSpinner(suffixAndPrefix ...string) {
@@ -43,5 +47,19 @@ func StopSpinner() {
 		s.Prefix = ""
 		s.Suffix = ""
 		s.Stop()
+	}
+}
+
+func PauseSpinner() {
+	if IsTerm() && s.Active() && !paused {
+		s.Stop()
+		paused = true
+	}
+}
+
+func ResumeSpinner() {
+	if IsTerm() && !s.Active() && paused {
+		s.Start()
+		paused = false
 	}
 }

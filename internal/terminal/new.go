@@ -29,6 +29,7 @@ var newCmd = &cobra.Command{
 			tasks.ProjectPHPConfigPipe(fs),
 			tasks.ProjectWPCLIConfigPipe(fs),
 			tasks.ProjectMarshalPipe(fs),
+			tasks.NetworksCreatePipe(api),
 			tasks.ContainersStartPipe(api, false),
 			tasks.PHPMyAdminReloadPipe(api),
 			tasks.DNSReloadPipe(api, fs),

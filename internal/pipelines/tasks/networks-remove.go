@@ -16,7 +16,7 @@ func NetworksRemovePipe(api docker.Docker) pipelines.Pipe {
 			return ProjectNotFoundErr
 		}
 
-		network := project.GetNetworkName()
+		network := project.GetNetwork().Name
 		if isUsed, isUsedErr := api.NetworkIsInUsed(ctx, network); !isUsed && isUsedErr == nil {
 			if err := api.NetworkRemove(ctx, network); err != nil {
 				return err

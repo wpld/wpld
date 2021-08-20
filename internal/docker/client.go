@@ -65,8 +65,12 @@ func (d Docker) EnsureImageExists(ctx context.Context, imageID string, force boo
 }
 
 func (d Docker) EnsureNetworkExists(ctx context.Context, net entities.Network) error {
-	_, err := d.api.NetworkInspect(ctx, net.Name, types.NetworkInspectOptions{})
-	if err == nil {
+	stdout.Infof(`Checking "%s" network...`, net.Name)
+
+	inspectOptions := types.NetworkInspectOptions{}
+	if resp, err := d.api.NetworkInspect(ctx, net.Name, inspectOptions); err == nil {
+		stdout.Infof(`Network "%s" exists!`, net.Name)
+		stdout.Debugy(net.Name, NetworkDebugInfo(resp))
 		return nil
 	} else if !client.IsErrNotFound(err) {
 		return err
@@ -92,14 +96,30 @@ func (d Docker) EnsureNetworkExists(ctx context.Context, net entities.Network) e
 		}
 	}
 
-	_, err = d.api.NetworkCreate(ctx, net.Name, args)
+	stdout.Infof(`Network "%s" doesn't exist. Creating a new one...`, net.Name)
 
-	return err
+	if resp, err := d.api.NetworkCreate(ctx, net.Name, args); err != nil {
+		return err
+	} else {
+		stdout.Infof(`Network "%s" is created!`, net.Name)
+		if resp.Warning != "" {
+			stdout.Warnln(resp.Warning)
+		}
+
+		if networkResp, networkErr := d.api.NetworkInspect(ctx, net.Name, inspectOptions); networkErr == nil {
+			stdout.Debugy(net.Name, NetworkDebugInfo(networkResp))
+		}
+	}
+
+	return nil
 }
 
 func (d Docker) EnsureVolumeExists(ctx context.Context, volumeID string) error {
-	_, err := d.api.VolumeInspect(ctx, volumeID)
-	if err == nil {
+	stdout.Infof(`Checking "%s" volume...`, volumeID)
+
+	if resp, err := d.api.VolumeInspect(ctx, volumeID); err == nil {
+		stdout.Infof(`Volume "%s" exists!`, volumeID)
+		stdout.Debugy(volumeID, VolumeDebugInfo(resp))
 		return nil
 	} else if !client.IsErrNotFound(err) {
 		return err
@@ -111,9 +131,16 @@ func (d Docker) EnsureVolumeExists(ctx context.Context, volumeID string) error {
 		Labels: GetBasicLabels(),
 	}
 
-	_, err = d.api.VolumeCreate(ctx, args)
+	stdout.Infof(`Volume "%s" doesn't exist. Creating a new one...`, volumeID)
 
-	return err
+	if resp, err := d.api.VolumeCreate(ctx, args); err != nil {
+		return err
+	} else {
+		stdout.Infof(`Volume "%s" is created!`, volumeID)
+		stdout.Debugy(volumeID, VolumeDebugInfo(resp))
+	}
+
+	return nil
 }
 
 func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Service, pull bool) error {
@@ -122,12 +149,6 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 		return err
 	} else if exists {
 		return nil
-	}
-
-	if service.Network.Name != "" {
-		if err := d.EnsureNetworkExists(ctx, service.Network); err != nil {
-			return err
-		}
 	}
 
 	if err := d.EnsureImageExists(ctx, service.Spec.Image, pull); err != nil {
@@ -229,7 +250,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	}
 
 	for _, warn := range resp.Warnings {
-		stdout.Warn(warn)
+		stdout.Warnln(warn)
 	}
 
 	return nil

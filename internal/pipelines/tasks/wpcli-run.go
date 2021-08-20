@@ -38,9 +38,7 @@ func WPCLIRunPipe(api docker.Docker, args []string) pipelines.Pipe {
 				},
 				Env: wp.Env,
 			},
-			Network: entities.Network{
-				Name: project.GetNetworkName(),
-			},
+			Network: project.GetNetwork(),
 		}
 
 		if err := api.ContainerStart(ctx, wpcli, false); err != nil {
