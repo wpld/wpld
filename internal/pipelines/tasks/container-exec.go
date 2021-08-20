@@ -17,10 +17,6 @@ func ContainerExecPipe(api docker.Docker, cmd []string, wd string) pipelines.Pip
 		}
 
 		// TODO: implement EXEC command as it is done in the docker-cli https://github.com/docker/cli/blob/master/cli/command/container/exec.go
-		if err := api.ContainerStart(ctx, service, false); err != nil {
-			return err
-		}
-
 		statusCode, statusErr := api.ContainerExecAttach(ctx, service, cmd, wd)
 		if statusErr == nil {
 			os.Exit(statusCode)
