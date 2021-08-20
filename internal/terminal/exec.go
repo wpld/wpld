@@ -12,7 +12,7 @@ import (
 var execCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
-	Use:           "exec [SERVICE] [COMMAND] [ARG...]",
+	Use:           "exec [COMMAND] [ARG...]",
 	Short:         "exec short desc",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		api, err := docker.NewDocker()
@@ -21,18 +21,19 @@ var execCmd = &cobra.Command{
 		}
 
 		fs := afero.NewOsFs()
+		flags := cmd.Flags()
 
-		service := "wp"
-		if len(args) > 0 {
-			service = args[0]
+		service, err := flags.GetString("service")
+		if err != nil {
+			return err
 		}
 
 		command := []string{"bash"}
-		if len(args) > 1 {
-			command = args[1:]
+		if len(args) > 0 {
+			command = args[:]
 		}
 
-		wd, err := cmd.Flags().GetString("working-dir")
+		wd, err := flags.GetString("working-dir")
 		if err != nil {
 			return err
 		}
@@ -50,5 +51,7 @@ var execCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(execCmd)
 
-	execCmd.Flags().StringP("working-dir", "w", "", "working directory")
+	flags := execCmd.Flags()
+	flags.StringP("service", "s", "wp", "service name")
+	flags.StringP("working-dir", "w", "", "working directory")
 }
