@@ -357,16 +357,28 @@ func (d Docker) ContainerExecAttach(ctx context.Context, service entities.Servic
 		return 0, err
 	}
 
-	attach, err := d.api.ContainerExecAttach(ctx, idresp.ID, types.ExecStartCheck{Tty: service.Tty})
+	attach, err := d.api.ContainerExecAttach(ctx, idresp.ID, types.ExecStartCheck{Tty: tty})
 	if err != nil {
 		return 0, err
 	} else {
 		defer attach.Close()
 	}
 
-	hijackedStreamer := NewHijackedStreamer(attach, tty)
-	if streamErr := hijackedStreamer.Stream(ctx); streamErr != nil {
-		return 0, streamErr
+	errCh := make(chan error, 1)
+
+	go func() {
+		defer close(errCh)
+		errCh <- func() error {
+			hijackedStreamer := NewHijackedStreamer(attach, tty)
+			return hijackedStreamer.Stream(ctx)
+		}()
+	}()
+
+	// TODO: Add tty size monitoring https://github.com/docker/cli/blob/c758c3e4a5a980cf0ea3292c958fd537822ba0d5/cli/command/container/exec.go#L166-L170
+
+	err = <-errCh
+	if err != nil {
+		return 0, err
 	}
 
 	inspect, err := d.api.ContainerExecInspect(ctx, idresp.ID)

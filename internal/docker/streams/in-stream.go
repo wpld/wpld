@@ -3,6 +3,7 @@ package streams
 import (
 	"errors"
 	"io"
+	"os"
 	"runtime"
 
 	"github.com/moby/term"
@@ -31,6 +32,20 @@ func (s InStream) Read(p []byte) (int, error) {
 
 func (s InStream) Close() error {
 	return s.stream.Close()
+}
+
+func (s *InStream) SetRawTerminal() error {
+	if os.Getenv("NORAW") != "" || !s.isTerm {
+		return nil
+	}
+
+	if state, err := term.SetRawTerminal(s.CommonStream.fd); err != nil {
+		return err
+	} else {
+		s.CommonStream.state = state
+	}
+
+	return nil
 }
 
 func (s InStream) CheckTTY(attachStdin, ttyMode bool) error {

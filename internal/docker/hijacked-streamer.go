@@ -2,6 +2,7 @@ package docker
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"runtime"
 	"sync"
@@ -30,16 +31,27 @@ type HijackedStreamer struct {
 }
 
 func NewHijackedStreamer(resp types.HijackedResponse, tty bool) *HijackedStreamer {
+	var errStream io.Writer
+
 	stdin, stdout, stderr := term.StdStreams()
 
+	in := streams.NewInStream(stdin)
+	out := streams.NewOutStream(stdout)
+
+	if tty {
+		errStream = out
+	} else {
+		errStream = stderr
+	}
+
 	return &HijackedStreamer{
-		in:  streams.NewInStream(stdin),
-		out: streams.NewOutStream(stdout),
+		in:  in,
+		out: out,
 		err: stderr,
 
-		stdin:  stdin,
-		stdout: stdout,
-		stderr: stderr,
+		stdin:  in,
+		stdout: out,
+		stderr: errStream,
 
 		resp: resp,
 		tty:  tty,
@@ -79,14 +91,13 @@ func (hs HijackedStreamer) Stream(ctx context.Context) error {
 }
 
 func (hs *HijackedStreamer) SetupInput() (func(), error) {
-	if hs.in == nil || !hs.tty {
+	if hs.stdin == nil || !hs.tty {
 		return func() {}, nil
 	}
 
-	// TODO: figure out why raw terminal doesn't restart state after setting it to raw
-	// if err := hs.SetRawTerminal(); err != nil {
-	// 	return nil, fmt.Errorf("unable to set IO streams as raw terminal: %s", err)
-	// }
+	if err := hs.SetRawTerminal(); err != nil {
+		return nil, fmt.Errorf("unable to set IO streams as raw terminal: %s", err)
+	}
 
 	var restoreOnce sync.Once
 	restore := func() {
