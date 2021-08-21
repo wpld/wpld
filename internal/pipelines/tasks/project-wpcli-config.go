@@ -22,27 +22,27 @@ func ProjectWPCLIConfigPipe(fs afero.Fs) pipelines.Pipe {
 			return ProjectNotFoundErr
 		}
 
-		if wp, ok := project.Services["wp"]; ok {
-			configFilename := ".wpld/wordpress/wp-cli.yml"
-
-			if err := fs.MkdirAll(filepath.Dir(configFilename), 0755); err != nil {
-				return err
-			}
-
-			if err := afero.WriteFile(fs, configFilename, []byte(wpcliConfig), 0644); err != nil {
-				return err
-			}
-
-			wp.Volumes = append(
-				wp.Volumes,
-				fmt.Sprintf("%s:/var/www/html/wp-cli.yml:ro", configFilename),
-			)
-
-			project.Services["wp"] = wp
-
-			return next(context.WithValue(ctx, "project", project))
+		wp, ok := project.Services["wp"]
+		if !ok {
+			return next(ctx)
 		}
 
-		return next(ctx)
+		configFilename := ".wpld/wordpress/wp-cli.yml"
+		if err := fs.MkdirAll(filepath.Dir(configFilename), 0755); err != nil {
+			return err
+		}
+
+		if err := afero.WriteFile(fs, configFilename, []byte(wpcliConfig), 0644); err != nil {
+			return err
+		}
+
+		wp.Volumes = append(
+			wp.Volumes,
+			fmt.Sprintf("%s:/var/www/html/wp-cli.yml:ro", configFilename),
+		)
+
+		project.Services["wp"] = wp
+
+		return next(context.WithValue(ctx, "project", project))
 	}
 }
