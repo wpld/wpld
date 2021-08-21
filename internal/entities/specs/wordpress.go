@@ -31,10 +31,12 @@ func NewWordPressSpec(slug, db, volume, php, projectType string) entities.Specif
 		Image:   fmt.Sprintf("wordpress:5-php%s-fpm-alpine", php),
 		Volumes: volumes,
 		Env: map[string]string{
-			"WORDPRESS_DB_HOST":     "db",
-			"WORDPRESS_DB_USER":     "wordpress",
-			"WORDPRESS_DB_PASSWORD": "password",
-			"WORDPRESS_DB_NAME":     db,
+			"WORDPRESS_DB_HOST":      "db",
+			"WORDPRESS_DB_USER":      "wordpress",
+			"WORDPRESS_DB_PASSWORD":  "password",
+			"WORDPRESS_DB_NAME":      db,
+			"WORDPRESS_DEBUG":        "on",
+			"WORDPRESS_CONFIG_EXTRA": "define( \"WP_DEBUG_DISPLAY\", false );\ndefine( \"WP_DEBUG_LOG\", true );",
 		},
 	}
 }
