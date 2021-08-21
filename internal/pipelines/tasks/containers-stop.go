@@ -47,14 +47,20 @@ func ContainersStopPipe(api docker.Docker) pipelines.Pipe {
 
 func ContainersStopAllPipe(api docker.Docker) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
+		stdout.Infoln("Looking for docker containers...")
 		list, err := api.FindAllRunningContainers(ctx)
+
 		if err != nil {
 			return err
+		} else {
+			stdout.Infof("Found %d containers", len(list))
 		}
 
 		for _, container := range list {
-			project, hasProjectLabel := container.Labels["wpld.project"]
-			service, hasServiceLabel := container.Labels["wpld.service"]
+			stdout.Infof("Stopping %s (%s) container...", container.Names[0], container.ID[0:12])
+
+			project, hasProjectLabel := container.Labels["io.wpld.project"]
+			service, hasServiceLabel := container.Labels["io.wpld.service"]
 
 			if hasProjectLabel && hasServiceLabel {
 				msg := fmt.Sprintf("{%s} Stopping %s...", project, service)
