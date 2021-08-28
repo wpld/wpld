@@ -445,6 +445,14 @@ func (d Docker) ContainerConnectNetworks(ctx context.Context, service entities.S
 	return nil
 }
 
+func (d Docker) ContainerRun(ctx context.Context, service entities.Service) (int, error) {
+	if err := d.ContainerStart(ctx, service, false); err != nil {
+		return 0, err
+	} else {
+		return d.ContainerAttach(ctx, service)
+	}
+}
+
 func (d Docker) NetworkIsInUsed(ctx context.Context, net string) (bool, error) {
 	info, err := d.api.NetworkInspect(ctx, net, types.NetworkInspectOptions{})
 	if err != nil {
