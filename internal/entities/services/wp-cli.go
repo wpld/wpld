@@ -1,13 +1,22 @@
 package services
 
 import (
+	"fmt"
+
 	"wpld/internal/entities"
 	"wpld/internal/stdout"
 )
 
+var (
+	wpcliIndex int = 0
+)
+
 func NewWpCliService(project entities.Project, cmd []string) entities.Service {
+	wpcliIndex++
+
+	id := fmt.Sprintf("wp-cli_%d", wpcliIndex)
 	wpcli := entities.Service{
-		ID:           project.GetContainerIDForService("wp-cli"),
+		ID:           project.GetContainerIDForService(id),
 		Project:      project.Name,
 		AttachStdout: true,
 		AttachStdin:  true,
