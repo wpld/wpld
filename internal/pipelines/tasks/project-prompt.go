@@ -18,15 +18,15 @@ import (
 func ProjectPromptPipe() pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
 		var answers struct {
-			Name           string
-			Type           string
-			Domains        []string
-			PHP            string `survey:"php"`
-			Cache          string
-			WordPressType  string `survey:"wordpress-type"`
-			WordPressUser  string `survey:"wordpress-user"`
-			WordPressPass  string `survey:"wordpress-pass"`
-			WordPressEmail string `survey:"wordpress-email"`
+			Name    string
+			Type    string
+			Domains []string
+			PHP     string `survey:"php"`
+			Cache   string
+			// WordPressType  string `survey:"wordpress-type"`
+			// WordPressUser  string `survey:"wordpress-user"`
+			// WordPressPass  string `survey:"wordpress-pass"`
+			// WordPressEmail string `survey:"wordpress-email"`
 		}
 
 		questions := []*survey.Question{
@@ -86,42 +86,42 @@ func ProjectPromptPipe() pipelines.Pipe {
 					},
 				},
 			},
-			{
-				Name: "wordpress-type",
-				Prompt: &survey.Select{
-					Message: "Select a WordPress installation type:",
-					Default: specs.WORDPRESS_TYPE_SINGLE,
-					Options: []string{
-						specs.WORDPRESS_TYPE_SINGLE,
-						specs.WORDPRESS_TYPE_SUBDIR,
-						specs.WORDPRESS_TYPE_SUBDOMAINS,
-					},
-				},
-			},
-			{
-				Name:     "wordpress-user",
-				Validate: survey.Required,
-				Prompt: &survey.Input{
-					Message: "Admin Username",
-					Default: "admin",
-				},
-			},
-			{
-				Name:     "wordpress-pass",
-				Validate: survey.Required,
-				Prompt: &survey.Input{
-					Message: "Admin Password",
-					Default: "password",
-				},
-			},
-			{
-				Name:     "wordpress-email",
-				Validate: survey.Required,
-				Prompt: &survey.Input{
-					Message: "Admin Email",
-					Default: "admin@example.com",
-				},
-			},
+			// {
+			// 	Name: "wordpress-type",
+			// 	Prompt: &survey.Select{
+			// 		Message: "Select a WordPress installation type:",
+			// 		Default: specs.WORDPRESS_TYPE_SINGLE,
+			// 		Options: []string{
+			// 			specs.WORDPRESS_TYPE_SINGLE,
+			// 			specs.WORDPRESS_TYPE_SUBDIR,
+			// 			specs.WORDPRESS_TYPE_SUBDOMAINS,
+			// 		},
+			// 	},
+			// },
+			// {
+			// 	Name:     "wordpress-user",
+			// 	Validate: survey.Required,
+			// 	Prompt: &survey.Input{
+			// 		Message: "Admin Username",
+			// 		Default: "admin",
+			// 	},
+			// },
+			// {
+			// 	Name:     "wordpress-pass",
+			// 	Validate: survey.Required,
+			// 	Prompt: &survey.Input{
+			// 		Message: "Admin Password",
+			// 		Default: "password",
+			// 	},
+			// },
+			// {
+			// 	Name:     "wordpress-email",
+			// 	Validate: survey.Required,
+			// 	Prompt: &survey.Input{
+			// 		Message: "Admin Email",
+			// 		Default: "admin@example.com",
+			// 	},
+			// },
 		}
 
 		err := survey.Ask(questions, &answers)
@@ -165,19 +165,19 @@ func ProjectPromptPipe() pipelines.Pipe {
 			}
 		}
 
-		wp := entities.WordPress{
-			User:         answers.WordPressUser,
-			Password:     answers.WordPressPass,
-			Email:        answers.WordPressEmail,
-			Multisite:    false,
-			Subdirectory: false,
-		}
-
-		if answers.WordPressType == specs.WORDPRESS_TYPE_SUBDIR {
-			wp.Subdirectory = true
-		} else if answers.WordPressType == specs.WORDPRESS_TYPE_SUBDOMAINS {
-			wp.Multisite = true
-		}
+		// wp := entities.WordPress{
+		// 	User:         answers.WordPressUser,
+		// 	Password:     answers.WordPressPass,
+		// 	Email:        answers.WordPressEmail,
+		// 	Multisite:    false,
+		// 	Subdirectory: false,
+		// }
+		//
+		// if answers.WordPressType == specs.WORDPRESS_TYPE_SUBDIR {
+		// 	wp.Subdirectory = true
+		// } else if answers.WordPressType == specs.WORDPRESS_TYPE_SUBDOMAINS {
+		// 	wp.Multisite = true
+		// }
 
 		ctx = context.WithValue(
 			ctx,
@@ -187,7 +187,7 @@ func ProjectPromptPipe() pipelines.Pipe {
 				Name:     answers.Name,
 				Volumes:  volumes,
 				Services: services,
-				WP:       wp,
+				// WP:       wp,
 			},
 		)
 

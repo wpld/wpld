@@ -36,7 +36,7 @@ var startCmd = &cobra.Command{
 			tasks.ContainersStartPipe(api, pull),
 			tasks.PHPMyAdminReloadPipe(api),
 			tasks.DNSReloadPipe(api, fs),
-			tasks.WordPressInstallPipe(api),
+			// tasks.WordPressInstallPipe(api),
 			tasks.ProjectInformationPipe(api),
 		)
 
