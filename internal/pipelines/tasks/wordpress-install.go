@@ -46,9 +46,12 @@ func WordPressInstallPipe(api docker.Docker) pipelines.Pipe {
 			nginx.Domains[0],
 			"--title",
 			project.Name,
-			"--admin_user=admin",
-			"--admin_password=password",
-			"--admin_email=admin@example.com",
+			"--admin_user",
+			project.WP.User,
+			"--admin_password",
+			project.WP.Password,
+			"--admin_email",
+			project.WP.Email,
 		}
 
 		wpcli = services.NewWpCliService(project, cmd)

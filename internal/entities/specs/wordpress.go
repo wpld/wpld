@@ -7,9 +7,12 @@ import (
 )
 
 const (
-	PROJECT_TYPE_PLUGIN     = "A plugin"
-	PROJECT_TYPE_THEME      = "A theme"
-	PROJECT_TYPE_WP_CONTENT = "Whole wp-content folder"
+	PROJECT_TYPE_PLUGIN       = "A plugin"
+	PROJECT_TYPE_THEME        = "A theme"
+	PROJECT_TYPE_WP_CONTENT   = "Whole wp-content folder"
+	WORDPRESS_TYPE_SINGLE     = "Single Site"
+	WORDPRESS_TYPE_SUBDIR     = "Subdomain Multisite"
+	WORDPRESS_TYPE_SUBDOMAINS = "Subdirectory Multisite"
 )
 
 func NewWordPressSpec(slug, db, volume, php, projectType string) entities.Specification {

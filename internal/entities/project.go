@@ -10,6 +10,7 @@ import (
 type Project struct {
 	ID       string                   `yaml:"id"`
 	Name     string                   `yaml:"name"`
+	WP       WordPress                `yaml:"wordpress"`
 	Volumes  []string                 `yaml:"volumes"`
 	Services map[string]Specification `yaml:"services"`
 }
