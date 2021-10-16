@@ -44,6 +44,7 @@ var stopCmd = &cobra.Command{
 				tasks.ContainersStopPipe(api),
 				tasks.PHPMyAdminReloadPipe(api),
 				tasks.DNSReloadPipe(api, fs),
+				tasks.GlobalProxyReload(api, fs),
 				tasks.NetworksRemovePipe(api),
 			)
 		}
