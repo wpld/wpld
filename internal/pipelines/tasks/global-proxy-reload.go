@@ -27,11 +27,17 @@ func GlobalProxyReload(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 
 		proxy := services.NewProxyService()
 		if len(domains) == 0 {
-			if err := api.ContainerStop(ctx, proxy); err != nil {
-				return err
+			stdout.StartSpinner("Stopping global proxy...")
+			stopErr := api.ContainerStop(ctx, proxy)
+			stdout.StopSpinner()
+
+			if stopErr != nil {
+				return stopErr
 			} else {
-				return next(ctx)
+				stdout.Success("Global proxy stopped")
 			}
+
+			return next(ctx)
 		}
 
 		tmpdir := afero.GetTempDir(fs, "wpld")

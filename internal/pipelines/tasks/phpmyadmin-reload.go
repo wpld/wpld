@@ -26,11 +26,11 @@ func PHPMyAdminReloadPipe(api docker.Docker) pipelines.Pipe {
 		phpmyadmin := services.NewPHPMyAdminService()
 		if len(containers) == 0 {
 			stdout.StartSpinner("Stopping global phpMyAdmin...")
-			err := api.ContainerStop(ctx, phpmyadmin)
+			stopErr := api.ContainerStop(ctx, phpmyadmin)
 			stdout.StopSpinner()
 
-			if err != nil {
-				return err
+			if stopErr != nil {
+				return stopErr
 			} else {
 				stdout.Success("Global phpMyAdmin stopped")
 			}
