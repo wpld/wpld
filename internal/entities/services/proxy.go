@@ -10,7 +10,11 @@ func NewProxyService() entities.Service {
 		Network: GetGlobalNetwork(),
 		Spec: entities.Specification{
 			Image: "nginx:alpine",
-			IPAddress: "10.1.0.1",
+			//IPAddress: "10.1.0.2",
+			Ports: []string{
+				"80:80",
+				"443:443/tcp",
+			},
 		},
 	}
 }

@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"fmt"
 	"text/template"
+	"wpld/internal/stdout"
 
 	"github.com/spf13/afero"
 
@@ -57,8 +58,19 @@ func GlobalProxyReload(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			fmt.Sprintf("%s:/etc/nginx/conf.d/default.conf:cached", file.Name()),
 		}
 
-		if err := api.ContainerRestart(ctx, proxy); err != nil {
+		stdout.StartSpinner("Starting global proxy...")
+		err = api.ContainerRestart(ctx, proxy)
+		if err == nil {
+			if networks, networksErr := api.FindAllNetworks(ctx); networksErr == nil {
+				err = api.ContainerConnectNetworks(ctx, proxy, networks)
+			}
+		}
+		stdout.StopSpinner()
+
+		if err != nil {
 			return err
+		} else {
+			stdout.Success("Global proxy started")
 		}
 
 		return next(ctx)
