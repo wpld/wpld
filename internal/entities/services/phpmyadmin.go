@@ -15,6 +15,7 @@ func NewPHPMyAdminService() entities.Service {
 			},
 			Domains: []string{
 				"phpmyadmin",
+				"phpmyadmin.test",
 			},
 		},
 	}
