@@ -13,6 +13,7 @@ type Project struct {
 	WP       *WordPress               `yaml:"wordpress,omitempty"`
 	Volumes  []string                 `yaml:"volumes"`
 	Services map[string]Specification `yaml:"services"`
+	Scripts  map[string]Script        `yaml:"scripts"`
 }
 
 func (p Project) GetNetwork() Network {
