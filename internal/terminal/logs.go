@@ -13,7 +13,7 @@ var logsCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	Use:           "logs [SERVICE]",
-	Short:         "short logs desc",
+	Short:         "displays output from a container",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		flags := cmd.Flags()
 

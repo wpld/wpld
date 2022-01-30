@@ -13,7 +13,7 @@ var newCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Use:           "new",
-	Short:         "new short desc",
+	Short:         "creates a new project",
 	RunE: func(c *cobra.Command, args []string) error {
 		api, err := docker.NewDocker()
 		if err != nil {

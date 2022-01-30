@@ -12,7 +12,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:     "wpld",
-	Short:   "wpld short desc",
+	Short:   "WordPress Local Docker",
 	Version: misc.VERSION,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		pflags := cmd.Root().PersistentFlags()

@@ -13,7 +13,7 @@ var stopCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Use:           "stop",
-	Short:         "stop short desc",
+	Short:         "stop project services",
 	Aliases: []string{
 		"down",
 		"halt",
