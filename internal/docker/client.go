@@ -125,7 +125,7 @@ func (d Docker) EnsureVolumeExists(ctx context.Context, volumeID string) error {
 		return err
 	}
 
-	args := volume.VolumeCreateBody{
+	args := volume.CreateOptions{
 		Name:   volumeID,
 		Driver: "local",
 		Labels: GetBasicLabels(),
@@ -272,7 +272,7 @@ func (d Docker) ContainerStart(ctx context.Context, service entities.Service, pu
 		return err
 	}
 
-	if err := d.api.ContainerStart(ctx, service.ID, types.ContainerStartOptions{}); err != nil {
+	if err := d.api.ContainerStart(ctx, service.ID, container.StartOptions{}); err != nil {
 		return err
 	}
 
@@ -287,7 +287,7 @@ func (d Docker) ContainerStop(ctx context.Context, service entities.Service) err
 		return nil
 	}
 
-	if err := d.api.ContainerStop(ctx, service.ID, nil); err != nil {
+	if err := d.api.ContainerStop(ctx, service.ID, container.StopOptions{}); err != nil {
 		return err
 	}
 
@@ -320,7 +320,7 @@ func (d Docker) ContainerRestart(ctx context.Context, service entities.Service) 
 func (d Docker) ContainerAttach(ctx context.Context, service entities.Service) (int, error) {
 	waitBodyCh, waitErrCh := d.api.ContainerWait(ctx, service.ID, "")
 
-	attachOptions := types.ContainerAttachOptions{
+	attachOptions := container.AttachOptions{
 		Stream: true,
 		Stdin:  service.AttachStdin,
 		Stdout: service.AttachStdout,
@@ -411,7 +411,7 @@ func (d Docker) ContainerExecAttach(ctx context.Context, service entities.Servic
 }
 
 func (d Docker) ContainerLogs(ctx context.Context, service entities.Service, tail string, skipStdout, skipStderr bool) error {
-	params := types.ContainerLogsOptions{
+	params := container.LogsOptions{
 		ShowStdout: !skipStdout,
 		ShowStderr: !skipStderr,
 		Tail:       tail,
@@ -467,7 +467,7 @@ func (d Docker) NetworkRemove(ctx context.Context, net string) error {
 }
 
 func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container, error) {
-	args := types.ContainerListOptions{
+	args := container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg(
 				"label",
@@ -480,7 +480,7 @@ func (d Docker) FindAllRunningContainers(ctx context.Context) ([]types.Container
 }
 
 func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, error) {
-	args := types.ContainerListOptions{
+	args := container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg(
 				"label",
@@ -513,7 +513,7 @@ func (d Docker) FindMySQLContainers(ctx context.Context) (map[string]string, err
 }
 
 func (d Docker) FindContainersWithDomains(ctx context.Context) (map[string]string, error) {
-	args := types.ContainerListOptions{
+	args := container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg(
 				"label",

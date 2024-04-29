@@ -5,14 +5,16 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"os"
+	"path/filepath"
 	"text/template"
-	"wpld/internal/stdout"
 
 	"github.com/spf13/afero"
 
 	"wpld/internal/docker"
 	"wpld/internal/entities/services"
 	"wpld/internal/pipelines"
+	"wpld/internal/stdout"
 )
 
 //go:embed embeds/nginx/reverse-proxy.conf
@@ -40,8 +42,20 @@ func GlobalProxyReload(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 			return next(ctx)
 		}
 
-		tmpdir := afero.GetTempDir(fs, "wpld")
-		file, err := afero.TempFile(fs, tmpdir, "reverse-proxy.*.conf")
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return err
+		}
+
+		wpld := filepath.Join(home, ".wpld")
+		if exists, err := afero.IsDir(fs, wpld); err != nil || !exists {
+			err = fs.Mkdir(wpld, 0755)
+			if err != nil {
+				return err
+			}
+		}
+
+		file, err := fs.Create(filepath.Join(wpld, "default.conf"))
 		if err != nil {
 			return err
 		}

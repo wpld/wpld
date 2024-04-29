@@ -2,6 +2,7 @@ package docker
 
 import (
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/volume"
 )
 
 func NetworkDebugInfo(net types.NetworkResource) map[string]interface{} {
@@ -14,7 +15,7 @@ func NetworkDebugInfo(net types.NetworkResource) map[string]interface{} {
 	}
 }
 
-func VolumeDebugInfo(vol types.Volume) map[string]interface{} {
+func VolumeDebugInfo(vol volume.Volume) map[string]interface{} {
 	return map[string]interface{}{
 		"scope":      vol.Scope,
 		"driver":     vol.Driver,
