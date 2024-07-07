@@ -22,10 +22,11 @@ import (
 )
 
 type Docker struct {
-	api client.CommonAPIClient
+	api               client.CommonAPIClient
+	persistContainers bool
 }
 
-func NewDocker() (Docker, error) {
+func NewDocker(options ...Option) (Docker, error) {
 	api, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return Docker{}, err
@@ -33,6 +34,10 @@ func NewDocker() (Docker, error) {
 
 	docker := Docker{
 		api: api,
+	}
+
+	for _, option := range options {
+		option(&docker)
 	}
 
 	return docker, nil
@@ -213,7 +218,7 @@ func (d Docker) EnsureContainerExists(ctx context.Context, service entities.Serv
 	host := &container.HostConfig{
 		Binds:       NormalizeContainerBinds(service.Spec.Volumes),
 		NetworkMode: container.NetworkMode(service.Network.Name),
-		AutoRemove:  true,
+		AutoRemove:  !d.persistContainers,
 		IpcMode:     "shareable",
 		CapAdd:      service.Spec.CapAdd,
 		CapDrop:     service.Spec.CapDrop,

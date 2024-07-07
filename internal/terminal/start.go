@@ -23,7 +23,17 @@ var startCmd = &cobra.Command{
 			return err
 		}
 
-		api, err := docker.NewDocker()
+		persistContainers, err := c.Flags().GetBool("persist-containers")
+		if err != nil {
+			return err
+		}
+
+		options := make([]docker.Option, 0, 1)
+		if persistContainers {
+			options = append(options, docker.WithPersistContainers())
+		}
+
+		api, err := docker.NewDocker(options...)
 		if err != nil {
 			return err
 		}
@@ -37,7 +47,7 @@ var startCmd = &cobra.Command{
 			tasks.PHPMyAdminReloadPipe(api),
 			//tasks.DNSReloadPipe(api, fs),
 			tasks.GlobalProxyReload(api, fs),
-			// tasks.WordPressInstallPipe(api),
+			//tasks.WordPressInstallPipe(api),
 			tasks.ProjectInformationPipe(api),
 		)
 
@@ -49,4 +59,5 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 
 	startCmd.Flags().BoolP("pull", "p", false, "force pulling images before starting containers")
+	startCmd.Flags().BoolP("persist-containers", "P", false, "do not auto-remove containers on stop")
 }
