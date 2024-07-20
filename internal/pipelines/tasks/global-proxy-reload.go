@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"text/template"
+	"time"
 
 	"github.com/spf13/afero"
 
@@ -22,6 +23,9 @@ var proxyConf string
 
 func GlobalProxyReload(api docker.Docker, fs afero.Fs) pipelines.Pipe {
 	return func(ctx context.Context, next pipelines.NextPipe) error {
+		// Wait a second to make sure that all containers have stopped.
+		time.Sleep(time.Second)
+
 		domains, err := api.FindContainersWithDomains(ctx)
 		if err != nil {
 			return err
