@@ -13,7 +13,7 @@ var wpCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	Use:           "wp COMMAND [ARG...]",
-	Short:         "executes a WP CLI command in the WordPress container",
+	Short:         "Executes a WP CLI command in the WordPress container",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		api, err := docker.NewDocker()
 		if err != nil {

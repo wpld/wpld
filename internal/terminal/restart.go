@@ -13,7 +13,7 @@ var restartCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	Use:           "restart",
-	Short:         "restart project services",
+	Short:         "Restart project services",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		api, err := docker.NewDocker()
 		if err != nil {

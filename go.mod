@@ -10,6 +10,7 @@ require (
 	github.com/docker/go-connections v0.5.0
 	github.com/fatih/color v1.16.0
 	github.com/gosimple/slug v1.14.0
+	github.com/joho/godotenv v1.5.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/moby/term v0.5.0
 	github.com/sirupsen/logrus v1.9.3

@@ -2,9 +2,12 @@ package tasks
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
@@ -49,6 +52,22 @@ func ProjectUnmarshalPipe(fs afero.Fs) pipelines.Pipe {
 		data, err := afero.ReadFile(fs, configFile)
 		if err != nil {
 			return err
+		}
+
+		envFile := filepath.Join(filepath.Dir(configFile), ".env")
+		envExists, err := afero.Exists(fs, envFile)
+		if envExists && err == nil {
+			if f, err := fs.OpenFile(envFile, os.O_RDONLY, 0644); err == nil {
+				if envs, err := godotenv.Parse(f); err == nil {
+					oldnew := []string{}
+					for key, value := range envs {
+						oldnew = append(oldnew, fmt.Sprintf("${%s}", key), value)
+					}
+
+					replacer := strings.NewReplacer(oldnew...)
+					data = []byte(replacer.Replace(string(data)))
+				}
+			}
 		}
 
 		var project entities.Project

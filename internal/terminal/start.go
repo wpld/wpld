@@ -13,7 +13,7 @@ var startCmd = &cobra.Command{
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	Use:           "start",
-	Short:         "start project services",
+	Short:         "Start project services",
 	Aliases: []string{
 		"up",
 	},

@@ -13,7 +13,7 @@ var execCmd = &cobra.Command{
 	SilenceErrors: true,
 	SilenceUsage:  true,
 	Use:           "exec [COMMAND] [ARG...]",
-	Short:         "executes a command in a running container",
+	Short:         "Executes a command in a running container",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		api, err := docker.NewDocker()
 		if err != nil {
