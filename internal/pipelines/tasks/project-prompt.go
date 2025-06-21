@@ -20,7 +20,7 @@ func ProjectPromptPipe() pipelines.Pipe {
 		var answers struct {
 			Name    string
 			Type    string
-			Domains []string
+			Domains string
 			PHP     string `survey:"php"`
 			Cache   string
 			// WordPressType  string `survey:"wordpress-type"`
@@ -43,13 +43,6 @@ func ProjectPromptPipe() pipelines.Pipe {
 					Message: "Domain names:",
 				},
 				Validate: survey.Required,
-				Transform: func(answer interface{}) interface{} {
-					if domains, ok := answer.(string); ok {
-						return regexp.MustCompile(`[,\s]+`).Split(domains, -1)
-					} else {
-						return answer
-					}
-				},
 			},
 			{
 				Name: "type",
@@ -146,7 +139,7 @@ func ProjectPromptPipe() pipelines.Pipe {
 		services := map[string]entities.Specification{
 			"wp":    specs.NewWordPressSpec(projectSlug, projectSlug, wpVolume, answers.PHP, answers.Type),
 			"db":    specs.NewDatabaseSpec(projectSlug, dbVolume),
-			"nginx": specs.NewNginxSpec(answers.Domains),
+			"nginx": specs.NewNginxSpec(regexp.MustCompile(`[,\s]+`).Split(answers.Domains, -1)),
 		}
 
 		if answers.Cache == "Memcached" {
